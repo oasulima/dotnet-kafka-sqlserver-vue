@@ -1,0 +1,284 @@
+networks:
+  application:
+    driver: bridge
+volumes:
+  # smtp4dev-data:
+  mssql:
+    #  kafka_data:
+
+services:
+  locator:
+    profiles: ['all', 'services']
+    restart: always
+    build:
+      dockerfile: locator/Locator.API/Dockerfile
+      context: ./backend/
+    ports:
+      - "33002:33000"
+    env_file:
+      - ./backend/locator/Locator.API/env/common.env
+      - ./backend/locator/Locator.API/env/local.env
+    networks:
+      - application
+    depends_on:
+      # init-kafka:
+      #   condition: service_completed_successfully
+      locator-db-migrations:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ./curl-8.11.0 http://localhost:33000/hc
+      interval: 1s
+      timeout: 5s
+      retries: 20
+
+  kafka:
+    profiles: ['all', 'env']
+    restart: always
+    image: 'bitnami/kafka:3.9.0'
+    ports:
+      - '9092:9092'
+      - '9094:9094'
+    environment:
+      - KAFKA_CFG_NODE_ID=1
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_LISTENERS=CLIENT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      - KAFKA_CFG_ADVERTISED_LISTENERS=CLIENT://kafka:9092,EXTERNAL://127.0.0.1:9094
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,CLIENT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=CLIENT
+      - KAFKA_CFG_PROCESS_ROLES=broker,controller
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_BROKER_ID=1
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=false
+      - KAFKA_KRAFT_CLUSTER_ID=L0ZEQh1yTbGhNNUE7-6wSQ
+    networks:
+      - application
+    #    volumes:
+    #      - "kafka_data:/bitnami"
+    healthcheck:
+      test: [ "CMD", "kafka-topics.sh", "--bootstrap-server=localhost:9092", "--list" ]
+      start_period: 15s
+      interval: 10s
+  init-kafka:
+    profiles: ['all', 'env']
+    image: bitnami/kafka:3.9.0
+    depends_on:
+      kafka:
+        condition: service_healthy
+    entrypoint: [ '/bin/sh', '-c' ]
+    networks:
+      - application
+    command: |
+      "
+      # blocks until kafka is reachable
+      kafka-topics.sh --bootstrap-server kafka:9092 --list
+      echo -e 'Creating Kafka topics'
+      kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic local.invalidate_cache_command --replication-factor 1 --partitions 1
+      kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic local.locator_quote_request --replication-factor 1 --partitions 1
+      kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic local.locator_quote_response --replication-factor 1 --partitions 1
+      kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic local.notification --replication-factor 1 --partitions 1
+      kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic local.reporting_internal_inventory_item --replication-factor 1 --partitions 1
+      kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic local.internalinventory_add_inventory_item --replication-factor 1 --partitions 1
+      kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic local.internalinventory_buy_request --replication-factor 1 --partitions 1
+      kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic local.internalinventory_buy_response --replication-factor 1 --partitions 1
+      kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic local.internalinventory_quote_request --replication-factor 1 --partitions 1
+      kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic local.internalinventory_quote_response --replication-factor 1 --partitions 1
+
+      echo -e 'Successfully created the following topics:'
+      kafka-topics.sh --bootstrap-server kafka:9092 --list
+      "
+  kafka-ui:
+    restart: always
+    profiles: ['all', 'env']
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - "9095:8080"
+    networks:
+      - application
+    environment:
+      - KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS=kafka:9092
+      - KAFKA_CLUSTERS_0_NAME=local
+    depends_on:
+      kafka:
+        condition: service_healthy
+  sql:
+    profiles: ['all', 'env']
+    restart: always
+    image: mcr.microsoft.com/mssql/server:latest
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=<YourStrong@Passw0rd>
+    ports:
+      - "1433:1433"
+    networks:
+      - application
+    volumes:
+      - mssql:/var/opt/mssql
+    healthcheck:
+      test: /opt/mssql-tools*/bin/sqlcmd -S localhost -U sa -P '<YourStrong@Passw0rd>' -C -Q 'SELECT 1' -b -o /dev/null || exit 1
+      interval: 1s
+      timeout: 5s
+      retries: 20
+
+  locator-db-migrations:
+    profiles: ['all', 'services']
+    build:
+      dockerfile: locator/Locator.DbMigrations/Dockerfile
+      context: ./backend/
+    env_file:
+      - ./backend/locator/Locator.DbMigrations/env/common.env
+      - ./backend/locator/Locator.DbMigrations/env/local.env
+    networks:
+      - application
+    # depends_on:
+    #   sql:
+    #     condition: service_healthy
+  internal-inventory-provider-db-migrations:
+    profiles: ['all', 'services']
+    build:
+      dockerfile: internal_inventory/InternalInventory.DbMigrations/Dockerfile
+      context: ./backend/
+    env_file:
+      - ./backend/internal_inventory/InternalInventory.DbMigrations/env/common.env
+      - ./backend/internal_inventory/InternalInventory.DbMigrations/env/local.env
+    networks:
+      - application
+    # depends_on:
+    #   sql:
+    #     condition: service_healthy
+
+  internal-inventory-provider:
+    profiles: ['all', 'services']
+    restart: always
+    build:
+      dockerfile: internal_inventory/InternalInventory.API/Dockerfile
+      context: ./backend/
+    env_file:
+      - ./backend/internal_inventory/InternalInventory.API/env/common.env
+      - ./backend/internal_inventory/InternalInventory.API/env/local.env
+    networks:
+      - application
+    ports:
+      - "33008:33000"
+    depends_on:
+
+      # init-kafka:
+      #   condition: service_completed_successfully
+      internal-inventory-provider-db-migrations:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ./curl-8.11.0 http://localhost:33000/hc
+      interval: 1s
+      timeout: 5s
+      retries: 20
+
+  adminui:
+    profiles: ['all', 'services']
+    restart: always
+    build:
+      dockerfile: admin/Admin.API/Dockerfile
+      context: ./backend/
+    env_file:
+      - ./backend/admin/Admin.API/env/common.env
+      - ./backend/admin/Admin.API/env/local.env
+    ports:
+      - "33004:33000"
+    networks:
+      - application
+    depends_on:
+      # init-kafka:
+      #   condition: service_completed_successfully
+
+      locator:
+        condition: service_healthy
+      internal-inventory-provider:
+        condition: service_healthy
+      reporting:
+        condition: service_healthy
+
+  reporting:
+    profiles: ['all', 'services']
+    restart: always
+    build:
+      dockerfile: reporting/Reporting.API/Dockerfile
+      context: ./backend/
+    env_file:
+      - ./backend/reporting/Reporting.API/env/common.env
+      - ./backend/reporting/Reporting.API/env/local.env
+    ports:
+      - "33005:33000"
+    networks:
+      - application
+    depends_on:
+      # init-kafka:
+      #   condition: service_completed_successfully
+      reporting-db-migrations:
+        condition: service_completed_successfully
+
+    healthcheck:
+      test: ./curl-8.11.0 http://localhost:33000/hc
+      interval: 1s
+      timeout: 5s
+      retries: 20
+
+  reporting-db-migrations:
+    profiles: ['all', 'services']
+    build:
+      dockerfile: reporting/Reporting.DbMigrations/Dockerfile
+      context: ./backend/
+    env_file:
+      - ./backend/reporting/Reporting.DbMigrations/env/common.env
+      - ./backend/reporting/Reporting.DbMigrations/env/local.env
+    networks:
+      - application
+    # depends_on:
+    #   sql:
+    #     condition: service_healthy
+
+  # smtp4dev:
+  #   image: rnwood/smtp4dev:v3
+  #   restart: always
+  #   ports:
+  #     - '5000:80'
+  #     - '25:25'
+  #     - '143:143'
+  #   volumes:
+  #     - smtp4dev-data:/smtp4dev
+  #   networks:
+  #     - application
+  #   environment:
+  #     - ServerOptions__HostName=smtp4dev
+  jaeger:
+    profiles: ['all', 'env']
+    restart: always
+    image: jaegertracing/jaeger:latest
+    networks:
+      application:
+        aliases: [spm_metrics_source]
+    volumes:
+      - "./jaeger-ui.json:/etc/jaeger/jaeger-ui.json" # Do we need this for v2 ? Seems to be running without this.
+      - "./config-spm.yaml:/etc/jaeger/config.yml"
+    command: ["--config", "/etc/jaeger/config.yml"]
+    ports:
+      - "16686:16686"
+      - "8888:8888"
+      - "8889:8889"
+      - "4317:4317"
+      - "4318:4318"
+    environment:
+      - METRICS_STORAGE_TYPE=prometheus
+      - PROMETHEUS_SERVER_URL=http://prometheus:9090
+      - PROMETHEUS_QUERY_NAMESPACE=${PROMETHEUS_QUERY_NAMESPACE:-}
+      - PROMETHEUS_QUERY_DURATION_UNIT=${PROMETHEUS_QUERY_DURATION_UNIT:-}
+      - PROMETHEUS_QUERY_NORMALIZE_CALLS=true
+      - PROMETHEUS_QUERY_NORMALIZE_DURATION=true
+  prometheus:
+    profiles: ['all', 'env']
+    restart: always
+    networks:
+      - application
+    image: prom/prometheus:v3.0.1
+    volumes:
+      - "./prometheus.yml:/etc/prometheus/prometheus.yml"
+    ports:
+      - "9090:9090"

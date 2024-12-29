@@ -1,0 +1,8 @@
+{
+  "general": {
+    "provider": "SqlServer",
+    "connection": "Server=localhost; Database=LocatorLocal; User Id=sa;Password=<YourStrong@Passw0rd>;TrustServerCertificate=true;",
+    "output": "./Data/Entities",
+    "overwrite": true
+  }
+}

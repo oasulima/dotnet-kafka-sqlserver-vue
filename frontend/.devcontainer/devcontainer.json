@@ -1,0 +1,23 @@
+{
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vue.volar",
+        "mhutchie.git-graph",
+        "chakrounanas.turbo-console-log",
+        "codeandstuff.package-json-upgrade",
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  },
+  "remoteUser": "ubuntu",
+  "mounts": [
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/ubuntu/.ssh,type=bind,consistency=cached",
+  ],
+  "runArgs": [
+    "--network=host"
+  ]
+}

@@ -1,0 +1,25 @@
+{
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-dotnettools.csdevkit@prerelease",
+                "ms-dotnettools.csharp@prerelease",
+                "redhat.vscode-xml",
+                "fullstackspider.visual-nuget",
+                "eamodio.gitlens",
+                "ms-dotnettools.vscodeintellicode-csharp"
+            ]
+        }
+    },
+    "remoteUser": "ubuntu",
+    "mounts": [
+        "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/ubuntu/.ssh,type=bind,consistency=cached",
+    ],
+    "runArgs": [
+        "--network=host"
+    ],
+    "postCreateCommand": "dotnet tool install -g linq2db.cli"
+}

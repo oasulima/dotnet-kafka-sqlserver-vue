@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    <ItemGroup>
+        <EmbeddedResource Include="Scripts\0001_create_table_InternalInventoryItems.sql"/>
+        <EmbeddedResource Include="Scripts\0002_create_table_LocatorQuoteResponses.sql"/>
+        <EmbeddedResource Include="Scripts\0003_create_table_QuoteDetails.sql"/>
+        <EmbeddedResource Include="Scripts\0004_create_table_QuoteRequests.sql"/>
+        <EmbeddedResource Include="Scripts\0005_create_sp_AddInternalInventoryItem.sql"/>
+        <EmbeddedResource Include="Scripts\0006_create_sp_AddLocatorQuoteResponse.sql"/>
+        <EmbeddedResource Include="Scripts\0007_create_sp_AddQuoteDetails.sql"/>
+        <EmbeddedResource Include="Scripts\0008_create_sp_AddQuoteRequest.sql"/>
+        <EmbeddedResource Include="Scripts\0009_create_sp_GetInternalInventoryItems.sql"/>
+        <EmbeddedResource Include="Scripts\0010_create_sp_GetInternalInventoryItemsHistory.sql"/>
+        <EmbeddedResource Include="Scripts\0011_create_sp_GetInternalInventorySymbolQuantities.sql"/>
+        <EmbeddedResource Include="Scripts\0012_create_sp_GetLocatesReportData.sql"/>
+        <EmbeddedResource Include="Scripts\0013_create_sp_GetLocatorQuoteResponses.sql"/>
+        <EmbeddedResource Include="Scripts\0014_create_sp_GetQuoteDetails.sql"/>
+        <EmbeddedResource Include="Scripts\0015_create_sp_GetQuoteRequests.sql"/>
+        <EmbeddedResource Include="Scripts\0016_create_sp_GetQuoteSymbolQuantities.sql"/>
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="dbup-sqlserver" Version="4.5.0"/>
+    </ItemGroup>
+</Project>
