@@ -1,7 +1,5 @@
 import { TimeEnum } from '@/constants';
 import notify from 'devextreme/ui/notify';
-import type { Subscription } from 'rxjs';
-import { authService, type AuthService } from './auth.service';
 
 type Listener = { methodName: string, callback: (...args: any[]) => void };
 
@@ -12,30 +10,21 @@ function BuildConnection(listeners: Listener[]) {
     connection.addEventListener(methodName, (event) => callback(JSON.parse(event.data)));
   }
 
-  window.addEventListener('beforeunload', () => {
-    console.log('connection.close()');
-    connection.close();
-  });
-
   return connection;
 }
 
 class HubConnectionService {
   private listeners: Listener[] = [];
-  // private authSubscription: Subscription | null = null;
   private interval: number | null = null;
   private hasError?: boolean;
   private connection: EventSource | null = null;
+  private healthCheckIntervalInMilliseconds: number = TimeEnum._1second;
 
 
   constructor(
-    // private authService: AuthService,
-    healthCheckIntervalInMilliseconds: number
   ) {
-    this.interval = setInterval(() => this.handleInterval(), healthCheckIntervalInMilliseconds);
-    // this.authSubscription = this.authService.getToken$().subscribe((token) => this.handleTokenUpdate(token));
+    this.interval = setInterval(() => this.handleInterval(), this.healthCheckIntervalInMilliseconds);
     this.connection = BuildConnection(this.listeners);
-    // this.connection.start();
   }
 
   public addListner(methodName: string, callback: (...args: any[]) => void) {
@@ -45,55 +34,27 @@ class HubConnectionService {
     });
   }
 
-  // private handleTokenUpdate(token: string | null) {
-  //   this.dropConnection();
-
-  //   if (token) {
-  //     this.connection = BuildConnection(token, this.listeners);
-  //     this.connection.start();
-  //   }
-  // }
-
-  private dropConnection() {
-    if (!this.connection) {
-      return;
-    }
-
-    // this.connection.stop();
-    this.connection = null;
-  }
-
   private handleInterval() {
     if (!this.connection) {
       this.hasError = false;
       return;
     }
 
-    // if ([HubConnectionState.Connected, HubConnectionState.Connecting].includes(this.connection.state)) {
-    //   if (this.hasError) {
-    //     notify('Server connection restored!', 'Success');
-    //     this.hasError = false;
-    //   }
-    // }
-    // else if (authService.isAuthenticatied()) {
-    //   notify('Server connection problem!', 'Error', this.healthCheckIntervalInMilliseconds);
-    //   this.hasError = true;
-    // }
-  }
-
-  public dispose() {
-    this.dropConnection();
-
-    if (this.interval) {
-      clearInterval(this.interval);
-      this.interval = null;
+    if (this.connection.readyState == EventSource.OPEN) {
+      if (this.hasError) {
+        notify('Connected', 'Success');
+        this.hasError = false;
+      }
     }
-
-    // if (this.authSubscription) {
-    //   this.authSubscription.unsubscribe();
-    //   this.authSubscription = null;
-    // }
+    else {
+      if (this.connection.readyState == EventSource.CLOSED) {
+        this.connection.close();
+        this.connection = BuildConnection(this.listeners);
+      }
+      notify('Connecting...', 'Error', this.healthCheckIntervalInMilliseconds);
+      this.hasError = true;
+    }
   }
 }
 
-export const hubConnectionService = new HubConnectionService(/* authService,*/ TimeEnum._1second);
+export const hubConnectionService = new HubConnectionService();
