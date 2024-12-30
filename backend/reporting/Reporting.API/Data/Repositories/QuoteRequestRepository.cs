@@ -6,11 +6,11 @@ namespace Reporting.API.Data.Repositories;
 
 public class QuoteRequestRepository : IQuoteRequestRepository
 {
-    private readonly DbConnection linq2Db;
+    private readonly IServiceScopeFactory serviceScopeFactory;
 
-    public QuoteRequestRepository(DbConnection linq2Db)
+    public QuoteRequestRepository(IServiceScopeFactory serviceScopeFactory)
     {
-        this.linq2Db = linq2Db;
+        this.serviceScopeFactory = serviceScopeFactory;
     }
 
     public QuoteRequestDb[] GetQuoteRequests(DateTime? from, DateTime? to)
@@ -21,6 +21,8 @@ public class QuoteRequestRepository : IQuoteRequestRepository
             new DataParameter("@To", LinqToDB.DataType.DateTime) {Value = to},
         };
 
+        using var scope = serviceScopeFactory.CreateScope();
+        var linq2Db = scope.ServiceProvider.GetRequiredService<DbConnection>();
         return linq2Db.QueryProc<QuoteRequestDb>("[dbo].[GetQuoteRequests]", parameters).ToArray();
     }
 
@@ -39,6 +41,8 @@ public class QuoteRequestRepository : IQuoteRequestRepository
             new DataParameter("@Time", quoteRequest.Time),
         };
 
+        using var scope = serviceScopeFactory.CreateScope();
+        var linq2Db = scope.ServiceProvider.GetRequiredService<DbConnection>();
         linq2Db.ExecuteProc("[dbo].[AddQuoteRequest]", parameters);
     }
 }

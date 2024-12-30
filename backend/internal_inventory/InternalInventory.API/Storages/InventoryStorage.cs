@@ -8,18 +8,19 @@ using InternalInventory.API.Storages.Interfaces;
 namespace InternalInventory.API.Storages;
 
 public class InventoryStorage : IInventoryStorage
-{
+{ 
+    private readonly IServiceScopeFactory serviceScopeFactory;
 
-    private readonly DbConnection _linq2Db;
-
-    public InventoryStorage(DbConnection linq2db)
+    public InventoryStorage(IServiceScopeFactory serviceScopeFactory)
     {
-        _linq2Db = linq2db;
+        this.serviceScopeFactory = serviceScopeFactory;
     }
 
     public Dictionary<string, InternalInventoryItemDb> GetInventoryFromDb(DateTime? afterDateTime = null)
     {
-        var inventoryItems = _linq2Db.InternalInventoryItems.Where(x => afterDateTime == null || x.Timestamp > afterDateTime).ToList();
+        using var scope = serviceScopeFactory.CreateScope();
+        var linq2Db = scope.ServiceProvider.GetRequiredService<DbConnection>();
+        var inventoryItems = linq2Db.InternalInventoryItems.Where(x => afterDateTime == null || x.Timestamp > afterDateTime).ToList();
 
         return GetRidOfOldVersions(inventoryItems);
     }
@@ -31,17 +32,23 @@ public class InventoryStorage : IInventoryStorage
 
     private void SaveCurrentVersionInternal(InternalInventoryItemDb inventoryItem, int attempt = 1)
     {
-        _linq2Db.Insert(inventoryItem);
+        using var scope = serviceScopeFactory.CreateScope();
+        var linq2Db = scope.ServiceProvider.GetRequiredService<DbConnection>();
+        linq2Db.Insert(inventoryItem);
     }
 
     public void SaveInventoryItems(IList<InternalInventoryItemDb> inventoryItems)
     {
-        _linq2Db.BulkCopy(inventoryItems);
+        using var scope = serviceScopeFactory.CreateScope();
+        var linq2Db = scope.ServiceProvider.GetRequiredService<DbConnection>();
+        linq2Db.BulkCopy(inventoryItems);
     }
 
     public void DeleteAllInventoryItems()
     {
-        _linq2Db.InternalInventoryItems.Delete();
+        using var scope = serviceScopeFactory.CreateScope();
+        var linq2Db = scope.ServiceProvider.GetRequiredService<DbConnection>();
+        linq2Db.InternalInventoryItems.Delete();
     }
 
     private static Dictionary<string, InternalInventoryItemDb> GetRidOfOldVersions(

@@ -24,6 +24,6 @@
 - [ ] UniquenessViolationException
 - [ ] FluentMigrator
 - [ ] генерация моделек для SSE
-- [ ] user emulator
+- [x] user emulator
 - [x] обновить vue
 - [ ] придумать как работать в разных devcontainer-ах

@@ -137,7 +137,7 @@ void AddConfiguration(IServiceCollection services)
                 activity.SetTag("SqlText", ti.SqlText);
                 activity.SetTag("TraceInfoStep", ti.TraceInfoStep);
             })
-            .UseDefaultLogging(provider), ServiceLifetime.Singleton);
+            .UseDefaultLogging(provider), ServiceLifetime.Scoped);
 }
 
 void ConfigureServices(IServiceCollection services)

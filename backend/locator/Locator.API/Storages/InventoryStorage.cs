@@ -8,16 +8,17 @@ namespace Locator.API.Storages;
 
 public class InventoryStorage : IInventoryStorage
 {
+    private readonly IServiceScopeFactory serviceScopeFactory;
 
-    private readonly DbConnection linq2Db;
-
-    public InventoryStorage(DbConnection linq2Db)
+    public InventoryStorage(IServiceScopeFactory serviceScopeFactory)
     {
-        this.linq2Db = linq2Db;
+        this.serviceScopeFactory = serviceScopeFactory;
     }
 
     public AccountInventoryItemDb[] GetInventory(string accountId, DateTime? afterDateTime = null)
     {
+        using var scope = serviceScopeFactory.CreateScope();
+        var linq2Db = scope.ServiceProvider.GetRequiredService<DbConnection>();
         var inventoryItems = linq2Db.AccountInventoryItems.Where(x => x.AccountId == accountId).ToList();
 
 
@@ -32,11 +33,15 @@ public class InventoryStorage : IInventoryStorage
 
     private void SaveInventoryVersionInternal(AccountInventoryItemDb inventoryItem, int attempt)
     {
+        using var scope = serviceScopeFactory.CreateScope();
+        var linq2Db = scope.ServiceProvider.GetRequiredService<DbConnection>();
         linq2Db.Insert(inventoryItem);
     }
 
     public void DeleteAllInventories()
     {
+        using var scope = serviceScopeFactory.CreateScope();
+        var linq2Db = scope.ServiceProvider.GetRequiredService<DbConnection>();
         linq2Db.AccountInventoryItems.Delete();
     }
 

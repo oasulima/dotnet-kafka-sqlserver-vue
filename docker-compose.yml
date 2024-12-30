@@ -30,6 +30,17 @@ services:
       interval: 1s
       timeout: 5s
       retries: 20
+  user-emulator:
+    profiles: ['all', 'emulator']
+    restart: always
+    build:
+      dockerfile: locator/Locator.UserEmulator/Dockerfile
+      context: ./backend/
+    env_file:
+      - ./backend/locator/Locator.UserEmulator/env/common.env
+      - ./backend/locator/Locator.UserEmulator/env/local.env
+    networks:
+      - application
 
   kafka:
     profiles: ['all', 'env']

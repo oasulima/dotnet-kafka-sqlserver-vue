@@ -5,11 +5,11 @@ namespace Reporting.API.Data.Repositories;
 
 public class QuoteDetailsRepository : IQuoteDetailsRepository
 {
-    private readonly DbConnection linq2Db;
+    private readonly IServiceScopeFactory serviceScopeFactory;
 
-    public QuoteDetailsRepository(DbConnection linq2Db)
+    public QuoteDetailsRepository(IServiceScopeFactory serviceScopeFactory)
     {
-        this.linq2Db = linq2Db;
+        this.serviceScopeFactory = serviceScopeFactory;
     }
 
     public void AddResponseDetailsJson(string quoteId, string responseDetailsJson)
@@ -20,6 +20,8 @@ public class QuoteDetailsRepository : IQuoteDetailsRepository
             new DataParameter($"ResponseDetailsJson", LinqToDB.DataType.NText) {Value = responseDetailsJson},
         };
 
+        using var scope = serviceScopeFactory.CreateScope();
+        var linq2Db = scope.ServiceProvider.GetRequiredService<DbConnection>();
         linq2Db.ExecuteProc("[dbo].[AddQuoteDetails]", parameters);
     }
 
@@ -30,6 +32,8 @@ public class QuoteDetailsRepository : IQuoteDetailsRepository
             new DataParameter("@QuoteId", LinqToDB.DataType.NVarChar) {Value = quoteId},
         };
 
+        using var scope = serviceScopeFactory.CreateScope();
+        var linq2Db = scope.ServiceProvider.GetRequiredService<DbConnection>();
         return linq2Db.ExecuteProc<Dbo>("[dbo].[GetQuoteDetails]", parameters).ResponseDetailsJson;
     }
 

@@ -10,17 +10,19 @@ namespace Reporting.API.Data.Repositories;
 
 public class InternalInventoryItemRepository : IInternalInventoryItemRepository
 {
-    private readonly DbConnection linq2Db;
+    private readonly IServiceScopeFactory serviceScopeFactory;
 
-    public InternalInventoryItemRepository(DbConnection linq2Db)
+    public InternalInventoryItemRepository(IServiceScopeFactory serviceScopeFactory)
     {
-        this.linq2Db = linq2Db;
+        this.serviceScopeFactory = serviceScopeFactory;
     }
 
     public InternalInventoryItemDb[] GetInternalInventoryItems(DateTime? from = null,
         DateTime? to = null, string? symbol = null, CreatingType? creatingType = null,
         InternalInventoryItem.State? status = null)
     {
+        using var scope = serviceScopeFactory.CreateScope();
+        var linq2Db = scope.ServiceProvider.GetRequiredService<DbConnection>();
         return linq2Db.QueryProc<InternalInventoryItemDb>("[dbo].[GetInternalInventoryItems]", new[]{
             new DataParameter("@From", from, LinqToDB.DataType.DateTime),
             new DataParameter("@To", to, LinqToDB.DataType.DateTime),
@@ -33,6 +35,8 @@ public class InternalInventoryItemRepository : IInternalInventoryItemRepository
     public InternalInventoryItemDb[] GetInternalInventoryItemsHistory(int take, string? providerId = null, string? symbol = null,
         DateTime? beforeCreatedAt = null)
     {
+        using var scope = serviceScopeFactory.CreateScope();
+        var linq2Db = scope.ServiceProvider.GetRequiredService<DbConnection>();
         return linq2Db.QueryProc<InternalInventoryItemDb>("[dbo].[GetInternalInventoryItemsHistory]", new[]{
             new DataParameter("@Take", take, LinqToDB.DataType.Int32),
             new DataParameter("@Symbol", symbol, LinqToDB.DataType.VarChar),
@@ -46,6 +50,9 @@ public class InternalInventoryItemRepository : IInternalInventoryItemRepository
         IReadOnlyCollection<InternalInventoryItem.State>? statuses = null,
         IReadOnlyCollection<CreatingType>? creatingTypes = null)
     {
+        using var scope = serviceScopeFactory.CreateScope();
+        var linq2Db = scope.ServiceProvider.GetRequiredService<DbConnection>();
+
         var parameters = new List<DataParameter>(){
             new DataParameter("@From", from, LinqToDB.DataType.DateTime),
             new DataParameter("@To", to, LinqToDB.DataType.DateTime),
@@ -63,6 +70,9 @@ public class InternalInventoryItemRepository : IInternalInventoryItemRepository
 
     public void AddInternalInventoryItem(InternalInventoryItemDb inventoryItem)
     {
+        using var scope = serviceScopeFactory.CreateScope();
+        var linq2Db = scope.ServiceProvider.GetRequiredService<DbConnection>();
+        
         var parameters = new[]
         {
             new DataParameter("@Id", inventoryItem.Id),

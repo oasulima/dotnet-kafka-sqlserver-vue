@@ -11,15 +11,17 @@ namespace Locator.API.Data.Repositories;
 
 public class ProviderSettingRepository : IProviderSettingRepository
 {
-    private readonly DbConnection linq2Db;
+    private readonly IServiceScopeFactory serviceScopeFactory;
 
-    public ProviderSettingRepository(DbConnection linq2Db)
+    public ProviderSettingRepository(IServiceScopeFactory serviceScopeFactory)
     {
-        this.linq2Db = linq2Db;
+        this.serviceScopeFactory = serviceScopeFactory;
     }
 
     public ProviderSetting? Get(string providerId)
     {
+        using var scope = serviceScopeFactory.CreateScope();
+        var linq2Db = scope.ServiceProvider.GetRequiredService<DbConnection>();
         return linq2Db.ProviderSettings
              .Where(x => x.ProviderId == providerId)
              .Select(x => new ProviderSetting
@@ -38,6 +40,8 @@ public class ProviderSettingRepository : IProviderSettingRepository
 
     public List<ProviderSetting> GetAll()
     {
+        using var scope = serviceScopeFactory.CreateScope();
+        var linq2Db = scope.ServiceProvider.GetRequiredService<DbConnection>();
         return linq2Db.ProviderSettings
              .Select(x => new ProviderSetting
              {
@@ -68,6 +72,8 @@ public class ProviderSettingRepository : IProviderSettingRepository
             QuoteResponseTopic = providerSetting.QuoteResponseTopic,
         };
 
+        using var scope = serviceScopeFactory.CreateScope();
+        var linq2Db = scope.ServiceProvider.GetRequiredService<DbConnection>();
         try
         {
             linq2Db.Insert(entity);
@@ -90,6 +96,8 @@ public class ProviderSettingRepository : IProviderSettingRepository
 
     public void Update(ProviderSetting providerSetting)
     {
+        using var scope = serviceScopeFactory.CreateScope();
+        var linq2Db = scope.ServiceProvider.GetRequiredService<DbConnection>();
         linq2Db.ProviderSettings
             .Where(x => x.ProviderId == providerSetting.ProviderId)
             .Set(x => x.Active, providerSetting.Active)
@@ -104,6 +112,8 @@ public class ProviderSettingRepository : IProviderSettingRepository
 
     public void Delete(string providerId)
     {
+        using var scope = serviceScopeFactory.CreateScope();
+        var linq2Db = scope.ServiceProvider.GetRequiredService<DbConnection>();
         linq2Db.ProviderSettings
             .Where(x => x.ProviderId == providerId)
             .Delete();

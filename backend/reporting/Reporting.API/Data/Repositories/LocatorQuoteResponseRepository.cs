@@ -11,11 +11,11 @@ namespace Reporting.API.Data.Repositories;
 
 public class LocatorQuoteResponseRepository : ILocatorQuoteResponseRepository
 {
-    private readonly DbConnection linq2Db;
+    private readonly IServiceScopeFactory serviceScopeFactory;
 
-    public LocatorQuoteResponseRepository(DbConnection linq2Db)
+    public LocatorQuoteResponseRepository(IServiceScopeFactory serviceScopeFactory)
     {
-        this.linq2Db = linq2Db;
+        this.serviceScopeFactory = serviceScopeFactory;
     }
 
     public List<LocatorQuoteResponseDb> GetLocatorQuoteResponses(DateTime from, DateTime to)
@@ -36,6 +36,9 @@ public class LocatorQuoteResponseRepository : ILocatorQuoteResponseRepository
 
     public LocatorQuoteResponseDb[] GetLocatorQuoteResponses(DateTime from, DateTime to, int take, int skip)
     {
+        using var scope = serviceScopeFactory.CreateScope();
+        var linq2Db = scope.ServiceProvider.GetRequiredService<DbConnection>();
+
         var parameters = new[]
         {
             new DataParameter("@Skip", LinqToDB.DataType.Int32) {Value = skip},
@@ -48,6 +51,9 @@ public class LocatorQuoteResponseRepository : ILocatorQuoteResponseRepository
 
     public LocatesReportDataDb[] GetLocatesReportData(GetLocatesReportDataDbParams @params)
     {
+        using var scope = serviceScopeFactory.CreateScope();
+        var linq2Db = scope.ServiceProvider.GetRequiredService<DbConnection>();
+
         var symbol = TrimOrNullIfWhiteSpace(@params.Symbol);
 
         var parameters = new[]
@@ -85,6 +91,9 @@ public class LocatorQuoteResponseRepository : ILocatorQuoteResponseRepository
         parameters.AddAsJsonIfNotEmpty("@ExcludeAccountIdsJson", excludeAccountIdsJson);
         parameters.AddAsJsonIfNotEmpty("@IncludeAccountIdsJson", includeAccountIdsJson);
 
+        using var scope = serviceScopeFactory.CreateScope();
+        var linq2Db = scope.ServiceProvider.GetRequiredService<DbConnection>();
+
         return linq2Db.QueryProc<SymbolQuantityDb>("[dbo].[GetQuoteSymbolQuantities]", parameters.ToArray()).ToArray();
     }
 
@@ -119,6 +128,9 @@ public class LocatorQuoteResponseRepository : ILocatorQuoteResponseRepository
             new DataParameter($"@{nameof(LocatorQuoteResponseDb.Sources)}", LinqToDB.DataType.VarChar)
                 {Value = JsonConvert.SerializeObject(model.Sources)}
         };
+
+        using var scope = serviceScopeFactory.CreateScope();
+        var linq2Db = scope.ServiceProvider.GetRequiredService<DbConnection>();
 
         linq2Db.ExecuteProc("[dbo].[AddLocatorQuoteResponse]", parameters);
     }
