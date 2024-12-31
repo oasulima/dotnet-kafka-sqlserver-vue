@@ -6,8 +6,6 @@ build-services:
 	docker compose --profile services build
 run-services:
 	docker compose --profile services up -d
-build-services:
-	docker compose --profile services build
 stop-services:
 	docker compose --profile services down
 run-emulator:

@@ -60,9 +60,17 @@ public static class KafkaUtils
     {
         public byte[] Serialize(TValue data, SerializationContext context)
         {
-            var _serializerSettings = new JsonSerializerSettings();
-            _serializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
-            var data_str = JsonConvert.SerializeObject(data, _serializerSettings);
+            var serializerSettings = data switch
+            {
+                SyncCommand => new JsonSerializerSettings
+                {
+                    TypeNameHandling = TypeNameHandling.Objects,
+                    SerializationBinder = new SyncCommandBinder()
+                },
+                _ => new JsonSerializerSettings()
+            };
+            serializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
+            var data_str = JsonConvert.SerializeObject(data, serializerSettings);
             return Serializers.Utf8.Serialize(data_str, context);
         }
     }
@@ -72,9 +80,15 @@ public class KafkaDeserializer<TValue> : IDeserializer<TValue>
 {
     public TValue Deserialize(ReadOnlySpan<byte> data, bool isNull, SerializationContext context)
     {
-        var data_str = Deserializers.Utf8.Deserialize(data, false, context);
-        var _serializerSettings = new JsonSerializerSettings();
-        _serializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
-        return JsonConvert.DeserializeObject<TValue>(data_str, _serializerSettings);
+        var data_str = Deserializers.Utf8.Deserialize(data, false, context); 
+        var serializerSettings = new JsonSerializerSettings();
+
+        if (typeof(TValue).Name == typeof(SyncCommand).Name)
+        {
+            serializerSettings.TypeNameHandling = TypeNameHandling.Objects;
+            serializerSettings.SerializationBinder = new SyncCommandBinder();
+        }
+        serializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
+        return JsonConvert.DeserializeObject<TValue>(data_str, serializerSettings);
     }
 }

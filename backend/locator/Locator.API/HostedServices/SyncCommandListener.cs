@@ -57,20 +57,14 @@ public class SyncCommandListener : BackgroundService
         {
             var message = consumeResult.Message.Value;
 
-            switch (message.Command)
+            Action action = message switch
             {
-                case SyncCommand.CommandTypeEnum.InvalidateCache:
-                    switch (message.CacheType)
-                    {
-                        case SyncCommand.CacheTypeEnum.ProviderSettings:
-                            _providerSettingStorage.RefreshStorage();
-                            break;
-                    }
-                    break;
-                case SyncCommand.CommandTypeEnum.EnableProvider:
-                    _autoDisableProvidersService.EnableProviderBack(message.ProviderId);
-                    break;
-            }
+                SyncCommand.InvalidateCache(SyncCommand.CacheTypeEnum.ProviderSettings) => () => _providerSettingStorage.RefreshStorage(),
+                SyncCommand.EnableProvider(string ProviderId) => () => _autoDisableProvidersService.EnableProviderBack(ProviderId),
+                _ => () => { throw new NotImplementedException(); }
+                ,
+            };
+            action();
         }
         catch (Exception ex)
         {

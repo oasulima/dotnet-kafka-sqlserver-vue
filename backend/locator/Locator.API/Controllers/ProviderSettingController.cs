@@ -57,11 +57,7 @@ public class ProviderSettingController : ControllerBase
             _providerSettingRepository.Add(providerSetting);
             var domainSetting = _providerSettingRepository.Get(providerSetting.ProviderId);
             _eventSender.SendInvalidateCacheCommand(
-                new SyncCommand()
-                {
-                    Command = SyncCommand.CommandTypeEnum.InvalidateCache,
-                    CacheType = SyncCommand.CacheTypeEnum.ProviderSettings
-                });
+                new SyncCommand.InvalidateCache(SyncCommand.CacheTypeEnum.ProviderSettings));
             return TypedResults.Ok(domainSetting.ToResponse());
         }
         catch (UniqueConstraintViolationException ex)
@@ -90,11 +86,7 @@ public class ProviderSettingController : ControllerBase
         _providerSettingRepository.Update(providerSetting);
         var updatedProviderSetting = _providerSettingRepository.Get(providerSetting.ProviderId);
 
-        _eventSender.SendInvalidateCacheCommand(new SyncCommand()
-        {
-            Command = SyncCommand.CommandTypeEnum.InvalidateCache,
-            CacheType = SyncCommand.CacheTypeEnum.ProviderSettings
-        });
+        _eventSender.SendInvalidateCacheCommand(new SyncCommand.InvalidateCache(SyncCommand.CacheTypeEnum.ProviderSettings));
 
         return updatedProviderSetting == null ? TypedResults.NotFound("Setting not found.") : TypedResults.Ok(updatedProviderSetting);
     }
@@ -104,11 +96,7 @@ public class ProviderSettingController : ControllerBase
     {
         _providerSettingRepository.Delete(providerId);
 
-        _eventSender.SendInvalidateCacheCommand(new SyncCommand()
-        {
-            Command = SyncCommand.CommandTypeEnum.InvalidateCache,
-            CacheType = SyncCommand.CacheTypeEnum.ProviderSettings
-        });
+        _eventSender.SendInvalidateCacheCommand(new SyncCommand.InvalidateCache(SyncCommand.CacheTypeEnum.ProviderSettings));
         return TypedResults.Ok(true);
     }
 
@@ -141,11 +129,7 @@ public class ProviderSettingController : ControllerBase
 
         providerSetting = _providerSettingRepository.Get(providerSetting.ProviderId);
 
-        _eventSender.SendInvalidateCacheCommand(new SyncCommand()
-        {
-            Command = SyncCommand.CommandTypeEnum.InvalidateCache,
-            CacheType = SyncCommand.CacheTypeEnum.ProviderSettings
-        });
+        _eventSender.SendInvalidateCacheCommand(new SyncCommand.InvalidateCache(SyncCommand.CacheTypeEnum.ProviderSettings));
 
         return TypedResults.Ok(providerSetting);
     }

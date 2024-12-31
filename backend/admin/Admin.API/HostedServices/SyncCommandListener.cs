@@ -47,11 +47,13 @@ public class SyncCommandListener : BackgroundService
     private void ProcessMessage(ConsumeResult<string, SyncCommand> consumeResult)
     {
         var message = consumeResult.Message.Value;
-        if (message.CacheType == SyncCommand.CacheTypeEnum.ProviderSettings)
+        Action action = message switch
         {
-            _providerSettingCache.RefreshSettings()
-                .GetAwaiter()
-                .GetResult(); //TODO: Can we use Kafka async listeners?
-        }
+            SyncCommand.InvalidateCache(SyncCommand.CacheTypeEnum.ProviderSettings)
+                => () => _providerSettingCache.RefreshSettings().GetAwaiter().GetResult(),
+            _ => () => { }
+            ,
+        };
+        action();
     }
 }

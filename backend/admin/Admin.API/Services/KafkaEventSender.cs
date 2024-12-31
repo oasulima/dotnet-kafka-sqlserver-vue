@@ -21,11 +21,7 @@ public class KafkaEventSender : IEventSender
 
     public void SendEnableProviderCommand(string providerId)
     {
-        var messageValue = new SyncCommand
-        {
-            Command = SyncCommand.CommandTypeEnum.EnableProvider,
-            ProviderId = providerId
-        };
+        var messageValue = new SyncCommand.EnableProvider(providerId);
         KafkaUtils.Produce(_kafkaOptions.Servers, _kafkaOptions.InvalidateCacheCommandTopic, messageValue);
     }
 }

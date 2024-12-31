@@ -18,7 +18,7 @@
 - [x] ms-dotnettools.csdevkit requested to download the .NET ASP.NET Runtime
 - [x] почистить .env файлы
 - [ ] попробовать minimal api
-- [ ] SyncCommand как в Rust
+- [x] SyncCommand как в Rust
 - [ ] В Reporting модельки для хранимых процедур без Timestamp
 - [ ] OT: вывести message для kafka. разобраться с IsAllDataRequested https://github.com/vhatsura/confluent-kafka-extensions-diagnostics/blob/main/src/Confluent.Kafka.Extensions.Diagnostics/ActivityDiagnosticsHelper.cs
 - [ ] UniquenessViolationException
