@@ -77,7 +77,6 @@ import { DateFormats, nameof } from '@/constants';
 import { formatQuoteSourceInfos } from '@/shared/formatters/quote-source-infos.formatter';
 import type { ILocatesReportFilter } from '@/shared/models/ILocatesReportFilter';
 import type { ILocatesReportGridModel } from '@/shared/models/ILocatesReportGridModel';
-import { ReportEligibleLocateStatuses } from '@/shared/models/signalr';
 import { reportsService } from '@/shared/services/api/reports.service';
 import { authService } from '@/shared/services/auth.service';
 import { LocatesColumnCaptions, LocatesReportColumnCaptions, type ReportTemplate } from '@/shared/services/auto-report.service';
@@ -97,6 +96,7 @@ import LocateStatus from '../../institutional-locates/components/locate-status.v
 import DateTimeTemplate from './date-time.template.vue';
 import type { LocatesReportDataRequest } from '@/lib/api/v1';
 import { match, P } from 'ts-pattern';
+import { ReportEligibleLocateStatuses } from '@/shared/models/LocateStatusEnum';
 
 const appTable = ref<InstanceType<typeof AppTable> | null>(null);
 const model = ref(setFilterToday({} as ILocatesReportFilter));

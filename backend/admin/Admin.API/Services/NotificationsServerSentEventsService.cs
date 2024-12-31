@@ -23,11 +23,11 @@ public class NotificationsServerSentEventsService : ServerSentEventsService, INo
         ClientConnected += OnClientConnected;
     }
 
-    private string[] SerializeObject<T>(T value)
+    private string SerializeObject<T>(T value)
     {
         JsonSerializerSettings _serializerSettings = JsonSerializerSettingsProvider.CreateSerializerSettings();
         _serializerSettings.Converters.Add(new StringEnumConverter());
-        return [JsonConvert.SerializeObject(value, _serializerSettings)];
+        return JsonConvert.SerializeObject(value, _serializerSettings);
     }
 
     private void OnClientConnected(object sender, ServerSentEventsClientConnectedArgs args)
@@ -76,8 +76,8 @@ public class NotificationsServerSentEventsService : ServerSentEventsService, INo
         var locateRequests = _locateRequestsCache.GetHistoryRecords();
         var locates = _locatesCache.GetHistoryRecords();
 
-        var locateRequestTask = SendHistoryAsync(client, Constants.SignalRMethods.LocateRequestHistory, locateRequests);
-        var locateTask = SendHistoryAsync(client, Constants.SignalRMethods.LocateHistory, locates);
+        var locateRequestTask = SendHistoryAsync(client, Constants.SSEMethods.LocateRequestHistory, locateRequests);
+        var locateTask = SendHistoryAsync(client, Constants.SSEMethods.LocateHistory, locates);
 
         return Task.WhenAll(locateRequestTask, locateTask);
     }
@@ -89,7 +89,7 @@ public class NotificationsServerSentEventsService : ServerSentEventsService, INo
             await client.SendEventAsync(new ServerSentEvent()
             {
                 Type = method,
-                Data = SerializeObject(chunk)
+                Data = [SerializeObject(chunk)]
             });
             // await Clients.Caller.SendAsync(method, chunk);
         }

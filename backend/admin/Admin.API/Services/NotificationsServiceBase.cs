@@ -2,7 +2,6 @@ using Newtonsoft.Json.Converters;
 using Admin.API.Services.Interfaces;
 using Lib.AspNetCore.ServerSentEvents;
 using Newtonsoft.Json;
-using Admin.API.Models;
 using Admin.API.Models.Cache;
 using Shared;
 using Microsoft.AspNetCore.Mvc.NewtonsoftJson;
@@ -28,20 +27,11 @@ public class NotificationsServiceBase : INotificationsServiceBase
 
     #region Methods
 
-    //protected Task SendSseEventAsync(string notification, bool alert)
-    //{
-    //    return _notificationsServerSentEventsService.SendEventAsync(new ServerSentEvent
-    //    {
-    //        Type = alert ? "alert" : null,
-    //        Data = new List<string>(notification.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None))
-    //    });
-    //}
-
-    private string[] SerializeObject<T>(T value)
+    private string SerializeObject<T>(T value)
     {
         JsonSerializerSettings _serializerSettings = JsonSerializerSettingsProvider.CreateSerializerSettings();
         _serializerSettings.Converters.Add(new StringEnumConverter());
-        return new string[] { JsonConvert.SerializeObject(value, _serializerSettings) };
+        return JsonConvert.SerializeObject(value, _serializerSettings);
     }
 
     public void SendLocateRequest(LocateRequestModel data)
@@ -49,7 +39,7 @@ public class NotificationsServiceBase : INotificationsServiceBase
         using var activity = TracingConfiguration.StartActivity("NotificationsService SendLocateRequest");
         try
         {
-            Send(data.SourceDetails.Select(x => x.Source).Distinct(), Constants.SignalRMethods.LocateRequest,
+            Send(Constants.SSEMethods.LocateRequest,
                 data);
         }
         catch (Exception e)
@@ -59,18 +49,19 @@ public class NotificationsServiceBase : INotificationsServiceBase
         }
     }
 
-    private void Send(IEnumerable<string> providerIds, string method, object data)
+    private void Send(string method, object data)
     {
+        var serializedData = SerializeObject(data);
         List<Task> tasks = new List<Task>
         {
-            SendToGroupAsync(Constants.KnownRoles.Admin, method, SerializeObject(data)),
-            SendToGroupAsync(Constants.KnownRoles.Viewer, method, SerializeObject(data))
+            SendToGroupAsync(Constants.KnownRoles.Admin, method, serializedData),
+            SendToGroupAsync(Constants.KnownRoles.Viewer, method, serializedData)
         };
 
         Task.WhenAll(tasks).GetAwaiter().GetResult();
     }
 
-    private Task SendToGroupAsync(string groupName, string type, IList<string> data)
+    private Task SendToGroupAsync(string groupName, string type, params string[] data)
         => _notificationsServerSentEventsService.SendEventAsync(
             groupName,
             new ServerSentEvent
@@ -84,7 +75,7 @@ public class NotificationsServiceBase : INotificationsServiceBase
         using var activity = TracingConfiguration.StartActivity("NotificationsService SendLocate");
         try
         {
-            Send(data.SourceDetails.Select(x => x.Source).Distinct(), Constants.SignalRMethods.Locate, data);
+            Send(Constants.SSEMethods.Locate, data);
         }
         catch (Exception e)
         {
@@ -98,7 +89,7 @@ public class NotificationsServiceBase : INotificationsServiceBase
         using var activity = TracingConfiguration.StartActivity("NotificationsService SendNotifications");
         try
         {
-            SendToGroupAsync(Constants.KnownRoles.Admin, Constants.SignalRMethods.Notification,
+            SendToGroupAsync(Constants.KnownRoles.Admin, Constants.SSEMethods.Notification,
                 SerializeObject(notifications)).GetAwaiter().GetResult();
         }
         catch (Exception e)
@@ -115,8 +106,8 @@ public class NotificationsServiceBase : INotificationsServiceBase
         {
             _notificationsServerSentEventsService.SendEventAsync(new ServerSentEvent
             {
-                Type = Constants.SignalRMethods.InternalInventory,
-                Data = SerializeObject(message)
+                Type = Constants.SSEMethods.InternalInventory,
+                Data = [SerializeObject(message)]
             }).GetAwaiter().GetResult();
         }
         catch (Exception e)
@@ -131,12 +122,12 @@ public class NotificationsServiceBase : INotificationsServiceBase
         using var activity = TracingConfiguration.StartActivity("NotificationsService SendHistory Locate Requests");
         try
         {
-            var method = Constants.SignalRMethods.LocateRequestHistory;
-
+            var method = Constants.SSEMethods.LocateRequestHistory;
+            var serializedData = SerializeObject(historyItems);
             List<Task> tasks =
             [
-                SendToGroupAsync(Constants.KnownRoles.Admin, method, SerializeObject(historyItems)),
-                SendToGroupAsync(Constants.KnownRoles.Viewer, method, SerializeObject(historyItems))
+                SendToGroupAsync(Constants.KnownRoles.Admin, method, serializedData),
+                SendToGroupAsync(Constants.KnownRoles.Viewer, method, serializedData)
             ];
 
             Task.WhenAll(tasks).GetAwaiter().GetResult();
@@ -153,12 +144,12 @@ public class NotificationsServiceBase : INotificationsServiceBase
         using var activity = TracingConfiguration.StartActivity("NotificationsService SendHistory Locates");
         try
         {
-            var method = Constants.SignalRMethods.LocateHistory;
-
+            var method = Constants.SSEMethods.LocateHistory;
+            var serializedData = SerializeObject(historyItems);
             List<Task> tasks =
             [
-                SendToGroupAsync(Constants.KnownRoles.Admin, method, SerializeObject(historyItems)),
-                SendToGroupAsync(Constants.KnownRoles.Viewer, method, SerializeObject(historyItems))
+                SendToGroupAsync(Constants.KnownRoles.Admin, method, serializedData),
+                SendToGroupAsync(Constants.KnownRoles.Viewer, method, serializedData)
             ];
 
             Task.WhenAll(tasks).GetAwaiter().GetResult();

@@ -1,6 +1,6 @@
-import type { ILocateModel } from './signalr/ILocateModel';
+import type { LocateModel } from '@/lib/api/v1';
 
-export interface ILocateGridModel extends Omit<ILocateModel, 'source'> {
+export interface ILocateGridModel extends Omit<LocateModel, 'source'> {
   formattedLocalTime: string;
   utcTicks: number;
   fee: number;

@@ -14,7 +14,7 @@
 
 <script setup lang="ts">
 import AppBadgedIcon from './app-badged-icon.vue';
-import { notificationService, type GroupedNotification } from '@/shared/services/notification.service';
+import { notificationService, type ViewedGroupedNotification } from '@/shared/services/notification.service';
 import DxPopover from 'devextreme-vue/popover';
 import DxScrollView from 'devextreme-vue/scroll-view';
 import { onMounted, onUnmounted, ref } from 'vue';
@@ -22,7 +22,7 @@ import AppNotificationList from './app-notification-list.vue';
 
 const isVisible = ref(false);
 const counter = ref(0);
-const items = ref([] as readonly GroupedNotification[]);
+const items = ref([] as readonly ViewedGroupedNotification[]);
 
 function toggleVisibility() {
   isVisible.value = !isVisible.value;

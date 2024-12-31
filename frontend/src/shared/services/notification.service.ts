@@ -3,6 +3,7 @@ import { Subject } from 'rxjs';
 import { localStorageService } from './local-storage.service';
 import { TimeEnum } from '@/constants';
 import { groupBy, maxBy, minBy, sortBy } from 'lodash-es';
+import type { GroupedNotification } from '@/lib/api/v1';
 
 const expirationCheckIntervalInMilliseconds = TimeEnum._1hour;
 const expirationTimeInMilliseconds = TimeEnum._24hours;
@@ -39,14 +40,14 @@ class NotificationService {
     this.cache.markAllViewed();
   }
 
-  private hanndleNotification(notifications: GroupedNotificationDto[]): void {
+  private hanndleNotification(notifications: GroupedNotification[]): void {
     this.cache.push(notifications.map((x) => ({ ...x, isViewed: false })));
     this.updates$.next();
   }
 }
 
 class NotificationCache {
-  private items: GroupedNotification[] = [];
+  private items: ViewedGroupedNotification[] = [];
 
   constructor(private options: NotificationCacheOptions) {
     this.loadAll();
@@ -60,11 +61,11 @@ class NotificationCache {
   }
 
   public getAll() {
-    return this.items as ReadonlyArray<GroupedNotification>;
+    return this.items as ReadonlyArray<ViewedGroupedNotification>;
   }
 
-  public push(x: GroupedNotification[]) {
-    this.items = regroupNotifications(this.items.concat(x));
+  public push(notifications: GroupedNotification[]) {
+    this.items = regroupNotifications(this.items.concat(notifications.map((x) => ({ ...x, isViewed: false }))));
     this.saveAll();
   }
 
@@ -89,9 +90,9 @@ class NotificationCache {
   }
 }
 
-function regroupNotifications(items: GroupedNotification[]) {
+function regroupNotifications(items: ViewedGroupedNotification[]) {
   const groups = groupBy(items, (x) => `${x.type}__${x.kind}__${x.groupParameters}`);
-  const result = [] as GroupedNotification[];
+  const result: ViewedGroupedNotification[] = [];
 
   for (const key of Object.keys(groups)) {
     const group = groups[key];
@@ -111,24 +112,8 @@ function regroupNotifications(items: GroupedNotification[]) {
   return sortBy(result, [(x) => x.isViewed, (x) => -new Date(x.lastTime).getTime()]);
 }
 
-interface GroupedNotificationDto {
-  type: NotificationType;
-  kind: string;
-  groupParameters: string;
-  lastMessage: string;
-  firstTime: string;
-  lastTime: string;
-  count: number;
-}
-
-export interface GroupedNotification extends GroupedNotificationDto {
+export interface ViewedGroupedNotification extends GroupedNotification {
   isViewed: boolean;
-}
-
-export enum NotificationType {
-  Warning = 'Warning',
-  Error = 'Error',
-  Critical = 'Critical'
 }
 
 export const notificationService = new NotificationService();

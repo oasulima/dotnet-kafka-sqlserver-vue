@@ -1,15 +1,12 @@
 import { uiDiplayStateService } from '@/@shared/services/ui-display-state.service';
 import { DateFormats, nameof, TimeEnum } from '@/constants';
-import type { InternalInventoryItem, QuoteResponseStatusEnum } from '@/lib/api/v1';
+import type { InternalInventoryItem, LocateModel, LocateRequestModel, QuoteResponseStatusEnum } from '@/lib/api/v1';
 import { formatQuoteSourceInfos } from '@/shared/formatters/quote-source-infos.formatter';
 import { toInventoryDatabaseModel } from '@/shared/mappers/inventory-database-model.mapper';
-import type { IExternalProvidersModel } from '@/shared/models/IExternalProvidersModel';
 import type { IInventoryDatabaseModel } from '@/shared/models/IInventoryDatabaseModel';
 import type { ILocateGridModel } from '@/shared/models/ILocateGridModel';
 import type { ILocateRequestGridModel } from '@/shared/models/ILocateRequestGridModel';
 import type { IMostLocatedModel } from '@/shared/models/IMostLocatedModel';
-import type { ILocateModel, ILocateRequestModel } from '@/shared/models/signalr';
-import { type IExternalProviderQuoteResponse } from '@/shared/models/signalr';
 import { internalInventoryService } from '@/shared/services/api/internal-inventory-service';
 import { hubConnectionService } from '@/shared/services/hub-connection';
 import dayjs from 'dayjs';
@@ -26,7 +23,6 @@ dayjs.extend(duration);
 
 interface InstitutionalLocatesServiceState {
   symbolFilter: string;
-  isExternalProvidersLinked: boolean;
   isInventoryDatabaseLinked: boolean;
   isMostLocatedLinked: boolean;
   isLocatesLinked: boolean;
@@ -35,7 +31,6 @@ interface InstitutionalLocatesServiceState {
 
 const defaultState: InstitutionalLocatesServiceState = {
   symbolFilter: '',
-  isExternalProvidersLinked: false,
   isInventoryDatabaseLinked: false,
   isMostLocatedLinked: false,
   isLocatesLinked: false,
@@ -49,7 +44,6 @@ export class InstitutionalLocatesService {
   private dayDataCleaned: Subject<void> = new Subject<void>();
   public $dayDataCleaned = this.dayDataCleaned.asObservable();
   public readonly $symbolFilter = new BehaviorSubject<string>('');
-  public readonly $isExternalProvidersLinked = new BehaviorSubject(false);
   public readonly $isInventoryDatabaseLinked = new BehaviorSubject(false);
   public readonly $isMostLocatedLinked = new BehaviorSubject(false);
   public readonly $isLocatesLinked = new BehaviorSubject(false);
@@ -68,7 +62,6 @@ export class InstitutionalLocatesService {
 
     combineLatest([
       this.$symbolFilter,
-      this.$isExternalProvidersLinked,
       this.$isInventoryDatabaseLinked,
       this.$isMostLocatedLinked,
       this.$isLocatesLinked,
@@ -85,7 +78,6 @@ export class InstitutionalLocatesService {
   private extractState(): InstitutionalLocatesServiceState {
     return {
       symbolFilter: this.$symbolFilter.value,
-      isExternalProvidersLinked: this.$isExternalProvidersLinked.value,
       isInventoryDatabaseLinked: this.$isInventoryDatabaseLinked.value,
       isMostLocatedLinked: this.$isMostLocatedLinked.value,
       isLocatesLinked: this.$isLocatesLinked.value,
@@ -95,7 +87,6 @@ export class InstitutionalLocatesService {
 
   private applyState(state: InstitutionalLocatesServiceState) {
     this.$symbolFilter.next(state.symbolFilter);
-    this.$isExternalProvidersLinked.next(state.isExternalProvidersLinked);
     this.$isInventoryDatabaseLinked.next(state.isInventoryDatabaseLinked);
     this.$isMostLocatedLinked.next(state.isMostLocatedLinked);
     this.$isLocatesLinked.next(state.isLocatesLinked);
@@ -164,8 +155,6 @@ export class InstitutionalLocatesService {
   public getLocateRequests(params: { accountId: string; }) {
     return [...this.locateRequests.values()].filter((item) => item.accountId == params.accountId);
   }
-
-  private readonly externalProviders: Map<string, Map<string, IExternalProvidersModel>> = new Map<string, Map<string, IExternalProvidersModel>>();
 
   private readonly locates: Map<string, ILocateGridModel> = new Map<string, ILocateGridModel>();
   public readonly $locates = new Subject<ILocateGridModel>();
@@ -275,11 +264,6 @@ export class InstitutionalLocatesService {
     data: []
   });
 
-  public externalProvidersStore = new ArrayStore<IExternalProvidersModel>({
-    key: ['Source', 'AssetType'],
-    data: []
-  });
-
   public updateLocatesProviderIds() {
     const filters = this.buildProviderIdFilters([...this.locatesProviderIdsSet]);
     this.locatesProviderIdsArr.splice(0);
@@ -297,7 +281,7 @@ export class InstitutionalLocatesService {
     ];
   }
 
-  private handleLocateRequest(locateRequest: ILocateRequestModel) {
+  private handleLocateRequest(locateRequest: LocateRequestModel) {
     if (this.locateRequests.has(locateRequest.id)) {
       return;
     }
@@ -305,11 +289,11 @@ export class InstitutionalLocatesService {
     this.updateMostLocatedWithLocateRequest(locateRequest);
   }
 
-  private getLocateMapKey(locate: ILocateModel) {
+  private getLocateMapKey(locate: LocateModel) {
     return locate.quoteId + locate.status;
   }
 
-  private handleLocate(locate: ILocateModel) {
+  private handleLocate(locate: LocateModel) {
     if (this.locates.has(this.getLocateMapKey(locate))) {
       return;
     }
@@ -319,65 +303,24 @@ export class InstitutionalLocatesService {
   }
 
   private runSignalR() {
-    hubConnectionService.addListner('locate-request', (locateRequest: ILocateRequestModel) =>
+    hubConnectionService.addListner('locate-request', (locateRequest: LocateRequestModel) =>
       this.handleLocateRequest(locateRequest)
     );
 
-    hubConnectionService.addListner('locate-request-history', (locateRequests: ILocateRequestModel[]) => {
+    hubConnectionService.addListner('locate-request-history', (locateRequests: LocateRequestModel[]) => {
       locateRequests.forEach((locateRequest) => {
         this.handleLocateRequest(locateRequest);
       });
     });
 
-    hubConnectionService.addListner('locate', (locate: ILocateModel) => {
+    hubConnectionService.addListner('locate', (locate: LocateModel) => {
       this.handleLocate(locate);
     });
 
-    hubConnectionService.addListner('locate-history', (locates: ILocateModel[]) => {
+    hubConnectionService.addListner('locate-history', (locates: LocateModel[]) => {
       locates.forEach((locate) => {
         this.handleLocate(locate);
       });
-    });
-
-    hubConnectionService.addListner('external-provider', (data: IExternalProviderQuoteResponse) => {
-      const item = {
-        Symbol: data.symbol,
-        Qty: data.quantity,
-        Price: data.price,
-        Source: data.providerId,
-        DiscountedPrice: data.discountedPrice,
-        AssetType: data.assetType.substring(0, 1),
-        DateTime: data.dateTime
-      };
-      let map: Map<string, IExternalProvidersModel> | undefined;
-      if (this.externalProviders.has(data.symbol)) {
-        map = this.externalProviders.get(data.symbol);
-      }
-      else {
-        map = new Map<string, IExternalProvidersModel>();
-        this.externalProviders.set(data.symbol, map);
-      }
-      const mapKey = `${item.Source}_${item.AssetType}`;
-      map?.set(mapKey, item);
-
-      if (!this.$isExternalProvidersLinked.value || data.symbol != this.$symbolFilter.value) return;
-      this.externalProvidersStore.byKey({
-        Source: item.Source,
-        AssetType: item.AssetType
-      })
-        .then(
-          (_) => {
-            _
-              ? this.externalProvidersStore.push([{
-                type: 'update', data: item, key: {
-                  Source: item.Source,
-                  AssetType: item.AssetType
-                }
-              }])
-              : this.externalProvidersStore.push([{ type: 'insert', data: item }]);
-          },
-          () => this.externalProvidersStore.push([{ type: 'insert', data: item }])
-        );
     });
 
     hubConnectionService.addListner('internal-inventory', (item: InternalInventoryItem) => {
@@ -385,7 +328,7 @@ export class InstitutionalLocatesService {
     });
   }
 
-  private insertIntoLocateRequestStore(locateRequest: ILocateRequestModel): void {
+  private insertIntoLocateRequestStore(locateRequest: LocateRequestModel): void {
     const time = dayjs.utc(locateRequest.time);
 
     const gridLocateRequest: ILocateRequestGridModel = {
@@ -405,7 +348,7 @@ export class InstitutionalLocatesService {
     return 'Filled' != locateStatus && 'Partial' != locateStatus;
   }
 
-  private insertIntoLocateStore(locate: ILocateModel): void {
+  private insertIntoLocateStore(locate: LocateModel): void {
     const time = dayjs.utc(locate.time);
     const fee = locate.qtyFill * locate.price;
     const cost = locate.qtyFill * locate.discountedPrice;
@@ -431,7 +374,7 @@ export class InstitutionalLocatesService {
     this.$locates.next(gridLocate);
   }
 
-  private updateMostLocatedWithLocateRequest(locateRequest: ILocateRequestModel): void {
+  private updateMostLocatedWithLocateRequest(locateRequest: LocateRequestModel): void {
     const symbol = locateRequest.symbol;
     const requestsQty = locateRequest.qtyReq;
     const mostLocated = this.mostLocated.get(symbol);
@@ -462,7 +405,7 @@ export class InstitutionalLocatesService {
     }
   }
 
-  private updateMostLocatedWithLocate(locate: ILocateModel): void {
+  private updateMostLocatedWithLocate(locate: LocateModel): void {
     const symbol = locate.symbol;
     const isFilledLocate = locate.status === 'Filled';
     const filledLocate = isFilledLocate ? 1 : 0;
@@ -498,19 +441,6 @@ export class InstitutionalLocatesService {
       this.mostLocated.set(symbol, newMostLocated);
       this.mostLocatedStore.push([{ type: 'insert', data: newMostLocated }]);
     }
-  }
-
-  public populateExternalProvidersGrid() {
-    if (!this.$isExternalProvidersLinked.value || !this.$symbolFilter.value) return;
-
-    const symbol = this.$symbolFilter.value;
-    if (!this.externalProviders.has(symbol)) return;
-
-    this.externalProviders.get(symbol)?.forEach((value) => {
-      if (dayjs(value.DateTime).diff(dayjs.utc(), 'minute', true) < -2) return;
-
-      this.externalProvidersStore.push([{ type: 'insert', data: value }]);
-    });
   }
 }
 

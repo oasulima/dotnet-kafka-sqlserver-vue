@@ -23,9 +23,8 @@ public static class Constants
         public const string KAFKA__INVALIDATE_CACHE_COMMAND_TOPIC = "KAFKA__INVALIDATE_CACHE_COMMAND_TOPIC";
     } 
 
-    public static class SignalRMethods
+    public static class SSEMethods
     {
-        public const string ExternalProvider = "external-provider";
         public const string LocateRequest = "locate-request";
         public const string LocateRequestHistory = "locate-request-history";
         public const string Locate = "locate";

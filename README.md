@@ -23,7 +23,7 @@
 - [ ] OT: вывести message для kafka. разобраться с IsAllDataRequested https://github.com/vhatsura/confluent-kafka-extensions-diagnostics/blob/main/src/Confluent.Kafka.Extensions.Diagnostics/ActivityDiagnosticsHelper.cs
 - [ ] UniquenessViolationException
 - [ ] FluentMigrator
-- [ ] генерация моделек для SSE
+- [x] генерация моделек для SSE
 - [x] user emulator
 - [x] обновить vue
 - [ ] придумать как работать в разных devcontainer-ах

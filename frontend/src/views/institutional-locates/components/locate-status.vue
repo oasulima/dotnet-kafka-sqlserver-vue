@@ -17,7 +17,7 @@ const id = 'status-' + uuid();
 
 const props = defineProps<{
   status: QuoteResponseStatusEnum;
-  error: string | null;
+  error: string | null | undefined;
 }>();
 
 </script>

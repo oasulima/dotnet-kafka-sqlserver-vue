@@ -1,6 +1,6 @@
-import type { ILocateRequestModel } from './signalr/ILocateRequestModel';
+import type { LocateRequestModel } from '@/lib/api/v1';
 
-export interface ILocateRequestGridModel extends ILocateRequestModel {
+export interface ILocateRequestGridModel extends LocateRequestModel {
   formattedLocalTime: string;
   utcTicks: number;
   formattedSources: string[];

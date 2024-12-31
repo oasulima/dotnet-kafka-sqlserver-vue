@@ -230,7 +230,9 @@ app.MapControllers();
 // app.MapHub<AdminUiHub>("/hub");
 
 
-app.UseEndpoints(endpoints => { endpoints.MapServerSentEvents<NotificationsServerSentEventsService>("/sse"); });
+// app.UseEndpoints(endpoints => { endpoints.MapServerSentEvents<NotificationsServerSentEventsService>("/sse"); });
+
+app.MapServerSentEvents<NotificationsServerSentEventsService>("/sse");
 
 app.Run();
 

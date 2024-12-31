@@ -775,6 +775,228 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/help/sse/locate-request": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["LocateRequestModel"];
+                        "application/json": components["schemas"]["LocateRequestModel"];
+                        "text/json": components["schemas"]["LocateRequestModel"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/help/sse/locate-request-history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["LocateRequestModel"][];
+                        "application/json": components["schemas"]["LocateRequestModel"][];
+                        "text/json": components["schemas"]["LocateRequestModel"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/help/sse/locate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["LocateModel"];
+                        "application/json": components["schemas"]["LocateModel"];
+                        "text/json": components["schemas"]["LocateModel"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/help/sse/locate-history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["LocateModel"][];
+                        "application/json": components["schemas"]["LocateModel"][];
+                        "text/json": components["schemas"]["LocateModel"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/help/sse/notification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["GroupedNotification"][];
+                        "application/json": components["schemas"]["GroupedNotification"][];
+                        "text/json": components["schemas"]["GroupedNotification"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/help/sse/internal-inventory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["InternalInventoryItem"];
+                        "application/json": components["schemas"]["InternalInventoryItem"];
+                        "text/json": components["schemas"]["InternalInventoryItem"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -793,6 +1015,18 @@ export interface components {
         };
         /** @enum {string} */
         CreatingType: "Unknown" | "SingleEntry" | "MultiEntry" | "Buy" | "CoverNegative" | "Overbuy" | "UnwantedPartial";
+        GroupedNotification: {
+            type: components["schemas"]["NotificationType"];
+            kind: string;
+            groupParameters: string;
+            lastMessage: string;
+            /** Format: date-time */
+            firstTime: string;
+            /** Format: date-time */
+            lastTime: string;
+            /** Format: int32 */
+            count: number;
+        };
         InternalInventoryItem: {
             id: string;
             /** Format: int32 */
@@ -828,6 +1062,42 @@ export interface components {
         };
         InventoryRequest: {
             accountId: string;
+        };
+        LocateModel: {
+            quoteId: string;
+            accountId: string;
+            /** Format: date-time */
+            time: string;
+            symbol: string;
+            /** Format: int32 */
+            reqQty: number;
+            /** Format: int32 */
+            qtyFill: number;
+            /** Format: double */
+            discountedPrice: number;
+            /** Format: double */
+            price: number;
+            status: components["schemas"]["QuoteResponseStatusEnum"];
+            errorMessage?: string | null;
+            source: string;
+            sourceDetails: components["schemas"]["QuoteSourceInfo"][];
+        };
+        LocateRequestModel: {
+            id: string;
+            accountId: string;
+            /** Format: date-time */
+            time: string;
+            symbol: string;
+            /** Format: int32 */
+            qtyReq: number;
+            /** Format: int32 */
+            qtyOffer: number;
+            /** Format: double */
+            price: number;
+            /** Format: double */
+            discountedPrice: number;
+            source: string;
+            sourceDetails: components["schemas"]["QuoteSourceInfo"][];
         };
         LocatesReportData: {
             id: string;
@@ -872,6 +1142,8 @@ export interface components {
             accountId: string | null;
             providerId: string | null;
         };
+        /** @enum {string} */
+        NotificationType: "Warning" | "Error" | "Critical";
         ProviderSetting: {
             providerId: string;
             name: string;
@@ -946,11 +1218,15 @@ export interface components {
 export type AddInternalInventoryItemRequest = components['schemas']['AddInternalInventoryItemRequest'];
 export type AutoDisabledInfo = components['schemas']['AutoDisabledInfo'];
 export type CreatingType = components['schemas']['CreatingType'];
+export type GroupedNotification = components['schemas']['GroupedNotification'];
 export type InternalInventoryItem = components['schemas']['InternalInventoryItem'];
 export type InventoryItem = components['schemas']['InventoryItem'];
 export type InventoryRequest = components['schemas']['InventoryRequest'];
+export type LocateModel = components['schemas']['LocateModel'];
+export type LocateRequestModel = components['schemas']['LocateRequestModel'];
 export type LocatesReportData = components['schemas']['LocatesReportData'];
 export type LocatesReportDataRequest = components['schemas']['LocatesReportDataRequest'];
+export type NotificationType = components['schemas']['NotificationType'];
 export type ProviderSetting = components['schemas']['ProviderSetting'];
 export type ProviderSettingExtended = components['schemas']['ProviderSettingExtended'];
 export type ProviderSettingRequest = components['schemas']['ProviderSettingRequest'];

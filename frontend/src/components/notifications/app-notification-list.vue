@@ -2,9 +2,9 @@
   <div class="app-message-list">
     <div class="message" v-bind:class="{ unread: !item.isViewed }" v-for="(item, index) in props.items" :key="index">
       <div class="message-icon">
-        <i v-if="item.type === NotificationType.Warning" class="dx-icon dx-icon-warning yellow"></i>
-        <i v-if="item.type === NotificationType.Error" class="dx-icon dx-icon-clear orange"></i>
-        <i v-if="item.type === NotificationType.Critical" class="dx-icon dx-icon-clear red"></i>
+        <i v-if="item.type === 'Warning'" class="dx-icon dx-icon-warning yellow"></i>
+        <i v-if="item.type === 'Error'" class="dx-icon dx-icon-clear orange"></i>
+        <i v-if="item.type === 'Critical'" class="dx-icon dx-icon-clear red"></i>
       </div>
       <div class="message-content">
         <div class="message-text">{{ item.lastMessage }}</div>
@@ -19,10 +19,10 @@
 </template>
 
 <script setup lang="ts">
-import { NotificationType, type GroupedNotification } from '@/shared/services/notification.service';
+import type { ViewedGroupedNotification } from '@/shared/services/notification.service';
 import dayjs from 'dayjs';
 
-const props = defineProps<{ items: readonly GroupedNotification[] }>();
+const props = defineProps<{ items: readonly ViewedGroupedNotification[] }>();
 </script>
 
 <style lang="scss">

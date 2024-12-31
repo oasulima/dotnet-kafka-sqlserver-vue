@@ -155,7 +155,7 @@ interface IQuoteListItem {
   formattedSources: string[];
   sourceDetails: ISelectableQuoteSourceInfo[];
   accountId: string;
-  errorMessage: string | null;
+  errorMessage?: string | null;
 }
 
 interface ISelectableQuoteSourceInfo extends QuoteSourceInfo {
