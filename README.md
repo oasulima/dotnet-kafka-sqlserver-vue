@@ -20,7 +20,7 @@
 - [ ] попробовать minimal api
 - [x] SyncCommand как в Rust
 - [ ] В Reporting модельки для хранимых процедур без Timestamp
-- [ ] OT: вывести message для kafka. разобраться с IsAllDataRequested https://github.com/vhatsura/confluent-kafka-extensions-diagnostics/blob/main/src/Confluent.Kafka.Extensions.Diagnostics/ActivityDiagnosticsHelper.cs
+- [X] OT: вывести message для kafka. не нужно, там есть topic и offset, можно посмотреть в kafka-ui
 - [ ] UniquenessViolationException
 - [ ] FluentMigrator
 - [x] генерация моделек для SSE

@@ -1,7 +1,4 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Hosting;
-using Locator.API.Services.Interfaces;
+﻿using Locator.API.Services.Interfaces;
 
 namespace Locator.API.HostedServices;
 
@@ -19,7 +16,6 @@ public class QuoteTimeoutProcessor : BackgroundService
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            using var activity = TracingConfiguration.StartActivity("QuoteTimeoutProcessor ExecuteAsync");
             try
             {
                 _locatorService.ProcessHangingQuotes();
@@ -27,6 +23,7 @@ public class QuoteTimeoutProcessor : BackgroundService
             }
             catch (Exception e)
             {
+                var activity = TracingConfiguration.StartActivity("QuoteTimeoutProcessor ExecuteAsync");
                 activity.LogException(e);
             }
         }
