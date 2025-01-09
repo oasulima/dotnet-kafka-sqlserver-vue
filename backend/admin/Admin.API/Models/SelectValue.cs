@@ -2,6 +2,6 @@
 
 public class SelectValue<TValue>
 {
-    public TValue Value { get; set; }
-    public string Label { get; set; }
+    public required TValue Value { get; set; }
+    public required string Label { get; set; }
 }

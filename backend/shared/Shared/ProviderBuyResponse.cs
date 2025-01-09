@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-
-namespace Shared
+﻿namespace Shared
 {
     public class ProviderBuyResponse
     {
@@ -10,20 +8,19 @@ namespace Shared
             Failed,
             NoInventory,
             Fulfilled,
-            Partial
+            Partial,
         }
 
-        public string Id { get; set; }
-        public string Symbol { get; set; }
-        public string AccountId { get; set; }
-        public IList<PriceInfo> BoughtAssets { get; set; }
-        public StatusEnum Status { get; set; }
-        public string RejectCode { get; set; }
-        public string QuoteId { get; set; }
+        public required string Id { get; set; }
+        public required string Symbol { get; set; }
+        public required string AccountId { get; set; }
+        public required IList<PriceInfo> BoughtAssets { get; set; }
+        public required StatusEnum Status { get; set; }
+        public required string QuoteId { get; set; }
 
         public override string ToString()
         {
-            return $"[ Id: {Id}, Symbol: {Symbol}, AccountId: {AccountId}, BoughtAssets: {JsonConvert.SerializeObject(BoughtAssets)}, Status: {Status}, RejectCode: {RejectCode}, QuoteId: {QuoteId} ]";
+            return $"[ Id: {Id}, Symbol: {Symbol}, AccountId: {AccountId}, BoughtAssets: {Converter.Serialize(BoughtAssets)}, Status: {Status}, QuoteId: {QuoteId} ]";
         }
     }
 }

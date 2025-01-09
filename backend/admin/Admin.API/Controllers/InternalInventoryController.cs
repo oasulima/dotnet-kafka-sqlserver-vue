@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
+﻿using Admin.API.Services.Interfaces;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Admin.API.Services.Interfaces;
 using Shared;
 using Shared.Refit;
 
@@ -17,7 +17,8 @@ public class InternalInventoryController : ControllerBase
     public InternalInventoryController(
         IInternalInventoryReportingService internalInventoryReportingService,
         IProviderSettingCache providerSettingCache,
-        IInternalInventoryApi internalInventoryApi)
+        IInternalInventoryApi internalInventoryApi
+    )
     {
         _internalInventoryReportingService = internalInventoryReportingService;
         _providerSettingCache = providerSettingCache;
@@ -25,10 +26,16 @@ public class InternalInventoryController : ControllerBase
     }
 
     [HttpPost("/api/internal-inventory")]
-    public async Task<Results<BadRequest<ModelStateDictionary>, Ok<InternalInventoryItem>>> AddInventoryItem(
-        [FromBody] AddInternalInventoryItemRequest request)
+    public async Task<
+        Results<BadRequest<ModelStateDictionary>, Ok<InternalInventoryItem>>
+    > AddInventoryItem([FromBody] AddInternalInventoryItemRequest request)
     {
-        if (!(ValidateCurrentUserProviderId(request.Source) && ValidateProviderAndPrice(request.Price, request.Source)))
+        if (
+            !(
+                ValidateCurrentUserProviderId(request.Source)
+                && ValidateProviderAndPrice(request.Price, request.Source)
+            )
+        )
         {
             return TypedResults.BadRequest(ModelState);
         }
@@ -40,19 +47,30 @@ public class InternalInventoryController : ControllerBase
     }
 
     [HttpGet("/api/internal-inventory/items/history")]
-    public Task<IEnumerable<InternalInventoryItem>> GetHistoryInventoryItems([FromQuery] string symbol)
+    public Task<IEnumerable<InternalInventoryItem>> GetHistoryInventoryItems(
+        [FromQuery] string symbol
+    )
     {
-        return _internalInventoryReportingService.GetPreviousDaysInventoryItems(take: 10, null,
-           symbol, DateTime.UtcNow);
+        return _internalInventoryReportingService.GetPreviousDaysInventoryItems(
+            take: 10,
+            null,
+            symbol,
+            DateTime.UtcNow
+        );
     }
 
     [HttpGet("/api/internal-inventory/items")]
-    public Task<IEnumerable<InternalInventoryItem>> GetInternalInventoryItems([FromQuery] string? symbol = null,
+    public Task<IEnumerable<InternalInventoryItem>> GetInternalInventoryItems(
+        [FromQuery] string? symbol = null,
         [FromQuery] CreatingType? creatingType = null,
-        [FromQuery] InternalInventoryItem.State? status = null)
+        [FromQuery] InternalInventoryItem.State? status = null
+    )
     {
         return _internalInventoryReportingService.GetInternalInventoryItems(
-            symbol, creatingType, status);
+            symbol,
+            creatingType,
+            status
+        );
     }
 
     [HttpGet("/api/internal-inventory")]
@@ -69,7 +87,9 @@ public class InternalInventoryController : ControllerBase
     }
 
     [HttpPut("/api/internal-inventory/deactivate")]
-    public async Task<Results<BadRequest<ModelStateDictionary>, Ok>> MakeInactive([FromBody] InternalInventoryItem item)
+    public async Task<Results<BadRequest<ModelStateDictionary>, Ok>> MakeInactive(
+        [FromBody] InternalInventoryItem item
+    )
     {
         if (!ValidateCurrentUserProviderId(item.Source))
         {
@@ -82,7 +102,9 @@ public class InternalInventoryController : ControllerBase
     }
 
     [HttpPut("/api/internal-inventory/activate")]
-    public async Task<Results<BadRequest<ModelStateDictionary>, Ok>> MakeActive([FromBody] InternalInventoryItem item)
+    public async Task<Results<BadRequest<ModelStateDictionary>, Ok>> MakeActive(
+        [FromBody] InternalInventoryItem item
+    )
     {
         if (!ValidateCurrentUserProviderId(item.Source))
         {
@@ -95,7 +117,9 @@ public class InternalInventoryController : ControllerBase
     }
 
     [HttpPut("/api/internal-inventory/delete")]
-    public async Task<Results<BadRequest<ModelStateDictionary>, Ok>> DeleteInventoryItem([FromBody] InternalInventoryItem item)
+    public async Task<Results<BadRequest<ModelStateDictionary>, Ok>> DeleteInventoryItem(
+        [FromBody] InternalInventoryItem item
+    )
     {
         if (!ValidateCurrentUserProviderId(item.Source))
         {

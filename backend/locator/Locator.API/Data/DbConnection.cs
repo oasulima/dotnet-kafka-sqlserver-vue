@@ -1,16 +1,15 @@
 using LinqToDB;
-using LinqToDB.Data;
 using Locator.API.Data.Entities;
+using Shared;
 
 namespace Locator.API.Data;
 
-public class DbConnection : DataConnection
+public class DbConnection : BaseDbConnection<DbConnection>
 {
     public DbConnection(DataOptions<DbConnection> options)
-        : base(options.Options)
-    {
-    }
+        : base(options) { }
 
-    public ITable<AccountInventoryItemDb> AccountInventoryItems => this.GetTable<AccountInventoryItemDb>();
+    public ITable<AccountInventoryItemDb> AccountInventoryItems =>
+        this.GetTable<AccountInventoryItemDb>();
     public ITable<ProviderSettingDb> ProviderSettings => this.GetTable<ProviderSettingDb>();
 }

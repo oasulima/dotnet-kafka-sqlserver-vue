@@ -1,7 +1,4 @@
-using System;
 using System.Collections.Concurrent;
-using System.Linq;
-using Admin.API.Models;
 using Admin.API.Models.Cache;
 using Admin.API.Services.Interfaces;
 using Shared;
@@ -25,25 +22,41 @@ public class LocateRequestsCache : ILocateRequestsCache
 
     public LocateRequestModel Memorize(LocatorQuoteResponse message)
     {
-        var entity = GetEntity(message.Id, message.Time);
+        var model = new LocateRequestModel
+        {
+            Id = message.Id,
+            AccountId = message.AccountId,
+            Symbol = message.Symbol,
+            QtyReq = message.ReqQty,
+            QtyOffer = message.FillQty ?? 0,
+            Time = message.Time,
+            Price = message.Price ?? 0,
+            DiscountedPrice = message.DiscountedPrice ?? 0,
+            Source =
+                message.Sources != null
+                    ? string.Join(", ", message.Sources.Select(x => x.Source).Distinct())
+                    : string.Empty,
+            SourceDetails = message.Sources  ?? Array.Empty<QuoteSourceInfo>(),
+        };
 
-        entity.AccountId = message.AccountId;
-        entity.Symbol = message.Symbol;
-        entity.QtyReq = message.ReqQty;
-        entity.QtyOffer = message.FillQty ?? 0;
-        entity.Price = message.Price ?? 0;
-        entity.DiscountedPrice = message.DiscountedPrice ?? 0;
-        entity.Source = message.Sources != null
-            ? string.Join(", ", message.Sources.Select(x => x.Source).Distinct())
-            : string.Empty;
-        entity.SourceDetails = message.Sources?.ToArray() ?? Array.Empty<QuoteSourceInfo>();
+        var entity = _locateRequestsCache.AddOrUpdate(
+            message.Id,
+            model,
+            (key, oldValue) =>
+            {
+                oldValue.AccountId = model.AccountId;
+                oldValue.Symbol = model.Symbol;
+                oldValue.QtyReq = model.QtyReq;
+                oldValue.QtyOffer = model.QtyOffer;
+                oldValue.Time = model.Time;
+                oldValue.Price = model.Price;
+                oldValue.DiscountedPrice = model.DiscountedPrice;
+                oldValue.Source = model.Source;
+                oldValue.SourceDetails = model.SourceDetails;
+                return oldValue;
+            }
+        );
 
         return entity;
-    }
-
-    private LocateRequestModel GetEntity(string id, DateTime time)
-    {
-        var lazy = new Lazy<LocateRequestModel>(() => new LocateRequestModel { Id = id, Time = time });
-        return _locateRequestsCache.GetOrAdd(id, _ => lazy.Value);
     }
 }

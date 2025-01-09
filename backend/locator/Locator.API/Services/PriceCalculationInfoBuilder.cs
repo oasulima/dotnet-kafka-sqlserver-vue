@@ -8,7 +8,10 @@ namespace Locator.API.Services;
 
 public class PriceCalculationInfoBuilder : IPriceCalculationInfoBuilder
 {
-    public Outcome<PriceCalculationInfo> BuildPriceCalculationInfo(Quote quote, IReadOnlyDictionary<string, ProviderSetting?> providersSettings)
+    public Outcome<PriceCalculationInfo> BuildPriceCalculationInfo(
+        Quote quote,
+        IReadOnlyDictionary<string, ProviderSetting?> providersSettings
+    )
     {
         var errors = new List<LocatorError>();
         var internalInventoryPrices = new List<PriceInfoEx>();
@@ -25,13 +28,19 @@ public class PriceCalculationInfoBuilder : IPriceCalculationInfoBuilder
 
             if (providerId is Providers.SelfIds.InternalInventory)
             {
-                var prices = BuildInternalInventoryPrices(providersSettings, providerResponse).Unwrap(errors);
+                var prices = BuildInternalInventoryPrices(providersSettings, providerResponse)
+                    .Unwrap(errors);
 
                 internalInventoryPrices.AddRange(prices);
             }
             else
             {
-                var prices = BuildRegularProviderPrices(providersSettings, providerId, providerResponse).Unwrap(errors);
+                var prices = BuildRegularProviderPrices(
+                        providersSettings,
+                        providerId,
+                        providerResponse
+                    )
+                    .Unwrap(errors);
 
                 regularResponses.Add(providerId, prices.ToArray());
             }
@@ -43,7 +52,8 @@ public class PriceCalculationInfoBuilder : IPriceCalculationInfoBuilder
             Symbol: quote.Symbol,
             RequestedQuantity: quote.RequestedQuantity,
             InternalInventorySupply: internalInventoryPrices,
-            RegularSupply: regularResponses);
+            RegularSupply: regularResponses
+        );
 
         return new(info, errors);
     }
@@ -51,7 +61,8 @@ public class PriceCalculationInfoBuilder : IPriceCalculationInfoBuilder
     private static Outcome<IEnumerable<PriceInfoEx>> BuildRegularProviderPrices(
         IReadOnlyDictionary<string, ProviderSetting?> providersSettings,
         string providerId,
-        ProviderQuoteResponse providerResponse)
+        ProviderQuoteResponse providerResponse
+    )
     {
         if (providerResponse.Prices == null)
         {
@@ -62,7 +73,10 @@ public class PriceCalculationInfoBuilder : IPriceCalculationInfoBuilder
 
         if (provider == null)
         {
-            var error = new LocatorError(LocatorErrorKind.RegularProviderProviderNotFound, $"ProviderId: {providerId}");
+            var error = new LocatorError(
+                LocatorErrorKind.RegularProviderProviderNotFound,
+                $"ProviderId: {providerId}"
+            );
 
             return new(Array.Empty<PriceInfoEx>(), error);
         }
@@ -77,7 +91,10 @@ public class PriceCalculationInfoBuilder : IPriceCalculationInfoBuilder
         return new(prices);
     }
 
-    private static Outcome<IEnumerable<PriceInfoEx>> BuildInternalInventoryPrices(IReadOnlyDictionary<string, ProviderSetting?> providersSettings, ProviderQuoteResponse providerResponse)
+    private static Outcome<IEnumerable<PriceInfoEx>> BuildInternalInventoryPrices(
+        IReadOnlyDictionary<string, ProviderSetting?> providersSettings,
+        ProviderQuoteResponse providerResponse
+    )
     {
         if (providerResponse.Prices == null)
         {
@@ -102,7 +119,12 @@ public class PriceCalculationInfoBuilder : IPriceCalculationInfoBuilder
 
             if (provider == null)
             {
-                errors.Add(new LocatorError(LocatorErrorKind.InternalInvSourceProviderNotFound, $"ProviderId: {providerId}"));
+                errors.Add(
+                    new LocatorError(
+                        LocatorErrorKind.InternalInvSourceProviderNotFound,
+                        $"ProviderId: {providerId}"
+                    )
+                );
 
                 continue;
             }
@@ -113,4 +135,3 @@ public class PriceCalculationInfoBuilder : IPriceCalculationInfoBuilder
         return new(prices, errors);
     }
 }
-

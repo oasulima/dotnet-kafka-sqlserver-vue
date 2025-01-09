@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
+using Shared;
 using Shared.Refit;
 
 namespace Admin.API.Controllers;
@@ -18,6 +18,6 @@ public class QuoteDetailsController : ControllerBase
     public async Task<object?> Get([FromQuery] string quoteId)
     {
         var result = await _reportingApi.GetLocatesReportData(quoteId);
-        return JsonConvert.DeserializeObject(result);
+        return Converter.Deserialize(result);
     }
 }

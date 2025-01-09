@@ -2,4 +2,71 @@
   "editor.tabSize": 2,
   "editor.insertSpaces": true,
   "editor.detectIndentation": false,
+  "files.autoSave": "afterDelay",
+    "rust-analyzer.inlayHints.parameterHints.enable": false,
+    "rust-analyzer.inlayHints.chainingHints.enable": false,
+    "rust-analyzer.inlayHints.typeHints.enable": false,
+    "git.autofetch": true,
+    "rust-analyzer.lens.references.adt.enable": true,
+    "rust-analyzer.lens.references.enumVariant.enable": true,
+    "rust-analyzer.lens.references.method.enable": true,
+    "rust-analyzer.lens.references.trait.enable": true,
+    "workbench.tree.indent": 10,
+    "workbench.colorCustomizations": {
+        "tree.indentGuidesStroke": "#00ff00"
+    },
+    "explorer.compactFolders": false,
+    "git.alwaysShowStagedChangesResourceGroup": true,
+    "git.fetchOnPull": true,
+    "git.showPushSuccessNotification": true,
+    "scm.diffDecorationsGutterVisibility": "hover",
+    "scm.diffDecorationsGutterAction": "none",
+    "editor.minimap.enabled": false,
+    "window.restoreWindows": "none",
+    "turboConsoleLog.quote": "'",
+    "[dart]": {
+        "editor.formatOnSave": true,
+        "editor.formatOnType": true,
+        "editor.rulers": [
+            80
+        ],
+        "editor.selectionHighlight": false,
+        "editor.tabCompletion": "onlySnippets",
+        "editor.wordBasedSuggestions": "off"
+    },
+    "[php]": {
+        "editor.defaultFormatter": "bmewburn.vscode-intelephense-client"
+    },
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "driver": "PostgreSQL",
+            "name": "sqx_test",
+            "connectString": "postgresql://postgres:postgres@0.0.0.0:5432/sqx_test"
+        }
+    ],
+    "dotnetAcquisitionExtension.enableTelemetry": false,
+    "dotnet.backgroundAnalysis.analyzerDiagnosticsScope": "fullSolution",
+    "dotnet.backgroundAnalysis.compilerDiagnosticsScope": "fullSolution",
+    "dotnet.automaticallySyncWithActiveItem": true,
+    "[vue]": {
+        "editor.defaultFormatter": "Vue.volar"
+    },
+    "javascript.referencesCodeLens.enabled": true,
+    "javascript.referencesCodeLens.showOnAllFunctions": true,
+    "typescript.implementationsCodeLens.enabled": true,
+    "typescript.implementationsCodeLens.showOnInterfaceMethods": true,
+    "typescript.referencesCodeLens.enabled": true,
+    "typescript.referencesCodeLens.showOnAllFunctions": true,
+    "debug.javascript.codelens.npmScripts": "all",
+    "redhat.telemetry.enabled": false,
+    "[typescript]": {
+        "editor.defaultFormatter": "vscode.typescript-language-features"
+    },
+    "dotnet.testWindow.useTestingPlatformProtocol": true,
+    "testing.coverageToolbarEnabled": true,
+    "[csharp]": {
+        "editor.defaultFormatter": "csharpier.csharpier-vscode"
+    }
 }

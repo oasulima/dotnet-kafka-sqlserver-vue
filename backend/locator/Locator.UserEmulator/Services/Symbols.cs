@@ -1,4 +1,4 @@
-﻿namespace TradeZero.Locator.Emulator.Services;
+﻿namespace Locator.UserEmulator.Services;
 
 public class Symbols
 {

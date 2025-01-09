@@ -1,6 +1,16 @@
-﻿using FluentValidation;
+﻿using System.Diagnostics;
+using System.Globalization;
+using System.Reflection;
+using FluentValidation;
 using FluentValidation.AspNetCore;
+using LinqToDB;
+using LinqToDB.AspNet;
+using LinqToDB.AspNet.Logging;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Serialization;
+using Reporting.API.Data;
 using Reporting.API.Data.Repositories;
 using Reporting.API.Data.Repositories.Interfaces;
 using Reporting.API.HostedServices;
@@ -8,15 +18,7 @@ using Reporting.API.Models.Options;
 using Reporting.API.Services;
 using Reporting.API.Services.Interfaces;
 using Reporting.API.Utility;
-using System.Globalization;
-using Newtonsoft.Json.Converters;
-using Newtonsoft.Json;
-using LinqToDB.AspNet;
-using Reporting.API.Data;
-using LinqToDB;
-using LinqToDB.AspNet.Logging;
-using System.Diagnostics;
-using System.Reflection;
+using Shared;
 
 string GetRequiredConfigString(string parameterName)
 {
@@ -31,54 +33,25 @@ string GetRequiredConfigString(string parameterName)
     return configString;
 }
 
-
-
 void ConfigureServices(IServiceCollection services)
 {
-
     AddOptions(services);
     AddServices(services);
     AddValidation(services);
 
     var connectionString = GetRequiredConfigString("CONNECTION_STRING");
-
-    services.AddLinqToDBContext<DbConnection>((provider, options)
-        => options
-            //will configure the AppDataConnection to use
-            //SqlServer with the provided connection string
-            //there are methods for each supported database
-            .UseSqlServer(connectionString)
-            //default logging will log everything using
-            //an ILoggerFactory configured in the provider
-            .UseTraceLevel(System.Diagnostics.TraceLevel.Verbose)
-            .UseTraceMapperExpression(true)
-            .UseTracing(TraceLevel.Verbose, ti =>
-            {
-                using var activity = TracingConfiguration.StartActivity("linq2db trace");
-                activity.SetTag("Command", ti.Command);
-                activity.SetTag("CommandText", ti.CommandText);
-                if (ti.Exception != null)
-                {
-                    activity.AddException(ti.Exception);
-                }
-                activity.SetTag("MapperExpression", ti.MapperExpression);
-                activity.SetTag("SqlText", ti.SqlText);
-                activity.SetTag("TraceInfoStep", ti.TraceInfoStep);
-            })
-            .UseDefaultLogging(provider), ServiceLifetime.Scoped);
-
-
+    Linq2dbConfiguration.RegisterLinq2db<DbConnection>(services, connectionString);
 }
-
-
 
 void AddValidation(IServiceCollection services)
 {
-
     services.AddValidatorsFromAssemblyContaining<Program>();
     services.AddFluentValidationAutoValidation();
 
-    services.Configure<ApiBehaviorOptions>(options => { options.SuppressModelStateInvalidFilter = true; });
+    services.Configure<ApiBehaviorOptions>(options =>
+    {
+        options.SuppressModelStateInvalidFilter = true;
+    });
 }
 
 void AddServices(IServiceCollection services)
@@ -101,18 +74,18 @@ void AddOptions(IServiceCollection services)
     {
         _.Servers = GetRequiredConfigString("KAFKA__BOOTSTRAP_SERVERS");
         _.GroupId = GetRequiredConfigString("KAFKA__GROUP_ID");
-        _.QuoteRequestTopic =
-            GetRequiredConfigString("KAFKA__QUOTE_REQUEST_TOPIC");
-        _.QuoteResponseTopic =
-            GetRequiredConfigString("KAFKA__QUOTE_RESPONSE_TOPIC");
-        _.InternalInventoryItemReportingTopic =
-            GetRequiredConfigString("KAFKA__INTERNAL_INVENTORY_ITEM_REPORTING_TOPIC");
+        _.QuoteRequestTopic = GetRequiredConfigString("KAFKA__QUOTE_REQUEST_TOPIC");
+        _.QuoteResponseTopic = GetRequiredConfigString("KAFKA__QUOTE_RESPONSE_TOPIC");
+        _.InternalInventoryItemReportingTopic = GetRequiredConfigString(
+            "KAFKA__INTERNAL_INVENTORY_ITEM_REPORTING_TOPIC"
+        );
     });
 
     services.Configure<AppOptions>(o =>
     {
-        o.DayDataCleanupTimeUtc =
-            TimeOnly.Parse(GetRequiredConfigString("DAY_DATA_CLEANUP_TIME_UTC"));
+        o.DayDataCleanupTimeUtc = TimeOnly.Parse(
+            GetRequiredConfigString("DAY_DATA_CLEANUP_TIME_UTC")
+        );
     });
 }
 
@@ -127,20 +100,16 @@ builder.Services.AddHealthChecks();
 
 // Add services to the container.
 
-builder.Services.AddControllers(options => { options.Filters.Add(typeof(ValidateModelAttribute)); })
-    .AddNewtonsoftJson(options =>
+JsonConvert.DefaultSettings = () => Converter.Settings;
+builder
+    .Services.AddControllers(options =>
     {
-        options.SerializerSettings.Converters.Add(new StringEnumConverter());
-        options.SerializerSettings.Converters.Add(new IsoDateTimeConverter
-        {
-            DateTimeStyles = DateTimeStyles.AdjustToUniversal
-        });
+        options.Filters.Add(typeof(ValidateModelAttribute));
+    })
+    .AddNewtonsoftJson(o =>
+    {
+        o.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
     });
-
-JsonConvert.DefaultSettings = () => new JsonSerializerSettings
-{
-    DateTimeZoneHandling = DateTimeZoneHandling.Utc
-};
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -168,9 +137,6 @@ if (app.Environment.IsDevelopment())
 app.UseRouting();
 app.UseResponseCompression();
 
-
 app.MapControllers();
-
-
 
 app.Run();

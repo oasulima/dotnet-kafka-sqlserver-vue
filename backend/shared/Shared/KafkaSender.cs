@@ -1,7 +1,4 @@
-using System;
 using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
 using Confluent.Kafka;
 using Confluent.Kafka.Extensions.Diagnostics;
 using Newtonsoft.Json;
@@ -14,43 +11,47 @@ public static class KafkaUtils
         this IConsumer<TKey, TValue> consumer,
         Action<ConsumeResult<TKey, TValue>> ProcessMessage,
         CancellationToken cancellationToken,
-        [CallerFilePath] string sourceFilePath = "")
+        [CallerFilePath] string sourceFilePath = ""
+    )
     {
-        return consumer.ConsumeWithInstrumentation((result, token) =>
-        {
-            using var activity = TracingConfiguration.StartActivity($"{sourceFilePath} process message");
-            try
+        return consumer.ConsumeWithInstrumentation(
+            (result, token) =>
             {
-                if (result == null)
+                using var activity = TracingConfiguration.StartActivity(
+                    $"{sourceFilePath} process message"
+                );
+                try
                 {
-                    throw new Exception("consume: result is null");
+                    if (result == null)
+                    {
+                        throw new Exception("consume: result is null");
+                    }
+                    ProcessMessage(result);
                 }
-                ProcessMessage(result);
-            }
-            catch (Exception e)
-            {
-                activity?.LogException(e);
-            }
-            return Task.CompletedTask;
-        }, cancellationToken);
+                catch (Exception e)
+                {
+                    activity?.LogException(e);
+                }
+                return Task.CompletedTask;
+            },
+            cancellationToken
+        );
     }
 
-    public static void Produce<TValue>(string kafkaServers, string topic, TValue messageValue,
-        Action<DeliveryReport<string, TValue>> deliveryHandler = null) where TValue : class
+    public static void Produce<TValue>(
+        string kafkaServers,
+        string topic,
+        TValue messageValue,
+        Action<DeliveryReport<string, TValue>>? deliveryHandler = null
+    )
+        where TValue : class
     {
-        var _producerConfig = new ProducerConfig
-        {
-            BootstrapServers = kafkaServers
-        };
-        using var producer =
-           new ProducerBuilder<string, TValue>(_producerConfig)
-               .SetValueSerializer(new KafkaSerializer<TValue>())
-           .BuildWithInstrumentation();
+        var _producerConfig = new ProducerConfig { BootstrapServers = kafkaServers };
+        using var producer = new ProducerBuilder<string, TValue>(_producerConfig)
+            .SetValueSerializer(new KafkaSerializer<TValue>())
+            .BuildWithInstrumentation();
 
-        var message = new Message<string, TValue>
-        {
-            Value = messageValue
-        };
+        var message = new Message<string, TValue> { Value = messageValue };
 
         producer.Produce(topic, message, deliveryHandler);
         producer.Flush();
@@ -62,15 +63,14 @@ public static class KafkaUtils
         {
             var serializerSettings = data switch
             {
-                SyncCommand => new JsonSerializerSettings
+                SyncCommand => new JsonSerializerSettings(Converter.Settings)
                 {
                     TypeNameHandling = TypeNameHandling.Objects,
-                    SerializationBinder = new SyncCommandBinder()
+                    SerializationBinder = new SyncCommandBinder(),
                 },
-                _ => new JsonSerializerSettings()
+                _ => new JsonSerializerSettings(Converter.Settings),
             };
-            serializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
-            var data_str = JsonConvert.SerializeObject(data, serializerSettings);
+            var data_str = Converter.Serialize(data, serializerSettings);
             return Serializers.Utf8.Serialize(data_str, context);
         }
     }
@@ -80,15 +80,20 @@ public class KafkaDeserializer<TValue> : IDeserializer<TValue>
 {
     public TValue Deserialize(ReadOnlySpan<byte> data, bool isNull, SerializationContext context)
     {
-        var data_str = Deserializers.Utf8.Deserialize(data, false, context); 
-        var serializerSettings = new JsonSerializerSettings();
+        var data_str = Deserializers.Utf8.Deserialize(data, false, context);
+        var serializerSettings = new JsonSerializerSettings(Converter.Settings);
 
         if (typeof(TValue).Name == typeof(SyncCommand).Name)
         {
             serializerSettings.TypeNameHandling = TypeNameHandling.Objects;
             serializerSettings.SerializationBinder = new SyncCommandBinder();
         }
-        serializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
-        return JsonConvert.DeserializeObject<TValue>(data_str, serializerSettings);
+        var result = Converter.Deserialize<TValue>(data_str, serializerSettings);
+
+        return result
+            ?? throw new NullReferenceException(
+                $"can't desesialize to {typeof(TValue)}: {data_str}"
+            );
+        ;
     }
 }

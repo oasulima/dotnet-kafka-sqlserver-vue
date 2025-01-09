@@ -16,9 +16,10 @@ public class ReportController : ControllerBase
     }
 
     [HttpPost("/api/report/locates")]
-    public Task<IList<LocatesReportData>> GetLocatesReportData([FromBody] LocatesReportDataRequest request)
+    public Task<IList<LocatesReportData>> GetLocatesReportData(
+        [FromBody] LocatesReportDataRequest request
+    )
     {
-        request.ProviderId = request.ProviderId;
         return _reportingApi.GetLocatesReportData(request);
     }
 }

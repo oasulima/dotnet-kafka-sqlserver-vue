@@ -22,23 +22,28 @@ public enum QuoteResponseStatusEnum
 
 public static class QuoteResponseStatus
 {
-    public static IImmutableSet<QuoteResponseStatusEnum> FinalizedStatuses { get; } = ImmutableHashSet.Create(new[] {
-        QuoteResponseStatusEnum.Cancelled,
-        QuoteResponseStatusEnum.Expired,
-        QuoteResponseStatusEnum.Failed,
-        QuoteResponseStatusEnum.RejectedBadRequest,
-        QuoteResponseStatusEnum.RejectedDuplicate,
-        QuoteResponseStatusEnum.Partial,
-        QuoteResponseStatusEnum.Filled,
-        QuoteResponseStatusEnum.NoInventory,
-        QuoteResponseStatusEnum.AutoRejected,
-        QuoteResponseStatusEnum.RejectedProhibited,
-    });
+    public static IImmutableSet<QuoteResponseStatusEnum> FinalizedStatuses { get; } =
+        ImmutableHashSet.Create(
+            [
+                QuoteResponseStatusEnum.Cancelled,
+                QuoteResponseStatusEnum.Expired,
+                QuoteResponseStatusEnum.Failed,
+                QuoteResponseStatusEnum.RejectedBadRequest,
+                QuoteResponseStatusEnum.RejectedDuplicate,
+                QuoteResponseStatusEnum.Partial,
+                QuoteResponseStatusEnum.Filled,
+                QuoteResponseStatusEnum.NoInventory,
+                QuoteResponseStatusEnum.AutoRejected,
+                QuoteResponseStatusEnum.RejectedProhibited,
+            ]
+        );
 
-
-    public static IImmutableSet<QuoteResponseStatusEnum> InProgressStatuses { get; } = ImmutableHashSet.Create(new[] {
-        QuoteResponseStatusEnum.WaitingAcceptance,
-        QuoteResponseStatusEnum.AutoAccepted,
-        QuoteResponseStatusEnum.RequestAccepted,
-    });
+    public static IImmutableSet<QuoteResponseStatusEnum> InProgressStatuses { get; } =
+        ImmutableHashSet.Create(
+            [
+                QuoteResponseStatusEnum.WaitingAcceptance,
+                QuoteResponseStatusEnum.AutoAccepted,
+                QuoteResponseStatusEnum.RequestAccepted,
+            ]
+        );
 }

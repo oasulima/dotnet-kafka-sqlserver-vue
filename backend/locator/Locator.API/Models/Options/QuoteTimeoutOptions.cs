@@ -2,8 +2,8 @@
 
 public class QuoteTimeoutOptions
 {
-    public TimeSpan MaxProviderQuoteWait { get; set; }
-    public TimeSpan MaxProviderBuyWait { get; set; }
-    public TimeSpan MaxQuoteAcceptWait { get; set; }
-    public TimeSpan RemoveHistoryTimeout { get; set; }
+    public required TimeSpan MaxProviderQuoteWait { get; set; }
+    public required TimeSpan MaxProviderBuyWait { get; set; }
+    public required TimeSpan MaxQuoteAcceptWait { get; set; }
+    public required TimeSpan RemoveHistoryTimeout { get; set; }
 }

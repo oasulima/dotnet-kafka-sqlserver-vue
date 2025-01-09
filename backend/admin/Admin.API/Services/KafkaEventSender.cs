@@ -1,6 +1,6 @@
-﻿using Microsoft.Extensions.Options;
-using Admin.API.Options;
+﻿using Admin.API.Options;
 using Admin.API.Services.Interfaces;
+using Microsoft.Extensions.Options;
 using Shared;
 
 namespace Admin.API.Services;
@@ -16,12 +16,20 @@ public class KafkaEventSender : IEventSender
 
     public void SendLocatorQuoteRequest(QuoteRequest quoteRequest)
     {
-        KafkaUtils.Produce(_kafkaOptions.Servers, _kafkaOptions.LocatorQuoteRequestTopic, quoteRequest);
+        KafkaUtils.Produce(
+            _kafkaOptions.Servers,
+            _kafkaOptions.LocatorQuoteRequestTopic,
+            quoteRequest
+        );
     }
 
     public void SendEnableProviderCommand(string providerId)
     {
         var messageValue = new SyncCommand.EnableProvider(providerId);
-        KafkaUtils.Produce(_kafkaOptions.Servers, _kafkaOptions.InvalidateCacheCommandTopic, messageValue);
+        KafkaUtils.Produce(
+            _kafkaOptions.Servers,
+            _kafkaOptions.InvalidateCacheCommandTopic,
+            messageValue
+        );
     }
 }

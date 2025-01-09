@@ -7,17 +7,17 @@ namespace Locator.API.Storages;
 
 public class QuoteStorage : IQuoteStorage
 {
-    private ConcurrentDictionary<Quote.AccountIdentifier,
-            ConcurrentDictionary<Quote.QuoteKey, Quote>>
-        _quotesByAccount = new();
+    private ConcurrentDictionary<
+        Quote.AccountIdentifier,
+        ConcurrentDictionary<Quote.QuoteKey, Quote>
+    > _quotesByAccount = new();
 
     public bool TryAddQuoteWithLock(Quote quote)
     {
         Monitor.Enter(quote);
         var accountKey = quote.Account;
         var key = quote.Key;
-        var accountCollection =
-            _quotesByAccount.GetOrAdd(accountKey, _ => new());
+        var accountCollection = _quotesByAccount.GetOrAdd(accountKey, _ => new());
         var result = accountCollection.TryAdd(key, quote);
         if (!result)
         {
@@ -47,9 +47,7 @@ public class QuoteStorage : IQuoteStorage
             {
                 Monitor.Exit(quote);
             }
-            catch (SynchronizationLockException exception)
-            {
-            }
+            catch (SynchronizationLockException) { }
         }
 
         return quote;
@@ -98,8 +96,10 @@ public class QuoteStorage : IQuoteStorage
     private Quote? GetQuoteInternal(Quote.QuoteKey key)
     {
         var accountKey = new Quote.AccountIdentifier(key.AccountId);
-        if (_quotesByAccount.TryGetValue(accountKey, out var quotes) &&
-            quotes.TryGetValue(key, out var quote))
+        if (
+            _quotesByAccount.TryGetValue(accountKey, out var quotes)
+            && quotes.TryGetValue(key, out var quote)
+        )
         {
             return quote;
         }

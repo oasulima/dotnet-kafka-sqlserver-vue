@@ -15,15 +15,18 @@ public class InventoryStorage : IInventoryStorage
         this.serviceScopeFactory = serviceScopeFactory;
     }
 
-    public AccountInventoryItemDb[] GetInventory(string accountId, DateTime? afterDateTime = null)
+    public ICollection<AccountInventoryItemDb> GetInventory(
+        string accountId,
+        DateTime? afterDateTime = null
+    )
     {
         using var scope = serviceScopeFactory.CreateScope();
         var linq2Db = scope.ServiceProvider.GetRequiredService<DbConnection>();
-        var inventoryItems = linq2Db.AccountInventoryItems.Where(x => x.AccountId == accountId).ToList();
-
+        var inventoryItems = linq2Db
+            .AccountInventoryItems.Where(x => x.AccountId == accountId)
+            .ToList();
 
         return GetRidOfOldVersions(inventoryItems);
-
     }
 
     public void SaveInventoryVersion(AccountInventoryItemDb inventoryItem)
@@ -45,7 +48,9 @@ public class InventoryStorage : IInventoryStorage
         linq2Db.AccountInventoryItems.Delete();
     }
 
-    private static AccountInventoryItemDb[] GetRidOfOldVersions(List<AccountInventoryItemDb> inventoryItems)
+    private static ICollection<AccountInventoryItemDb> GetRidOfOldVersions(
+        List<AccountInventoryItemDb> inventoryItems
+    )
     {
         var result = new Dictionary<string, AccountInventoryItemDb>();
 
@@ -58,6 +63,6 @@ public class InventoryStorage : IInventoryStorage
             }
         }
 
-        return result.Values.ToArray();
+        return result.Values;
     }
 }

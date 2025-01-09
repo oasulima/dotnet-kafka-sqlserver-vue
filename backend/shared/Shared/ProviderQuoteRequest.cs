@@ -2,12 +2,12 @@
 {
     public class ProviderQuoteRequest
     {
-        public string Id { get; set; }
-        public string AccountId { get; set; }
-        public string Symbol { get; set; }
+        public required string Id { get; init; }
+        public required string AccountId { get; set; }
+        public required string Symbol { get; set; }
         public int Quantity { get; set; }
         public DateTime ValidTill { get; set; }
-        public string QuoteId { get; set; }
+        public required string QuoteId { get; set; }
 
         public override string ToString()
         {

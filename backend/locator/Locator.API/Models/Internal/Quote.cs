@@ -1,5 +1,4 @@
-﻿using Shared;
-using Locator.API.Services.Interfaces;
+﻿using Locator.API.Services.Interfaces;
 using Locator.API.Utility;
 using Shared;
 
@@ -11,13 +10,13 @@ public class Quote
 
     public record AccountIdentifier(string AccountId);
 
-    private static HashSet<QuoteStatus> ActiveStatuses = new()
-    {
+    private static HashSet<QuoteStatus> ActiveStatuses =
+    [
         QuoteStatus.New,
         QuoteStatus.WaitingProvidersQuotes,
         QuoteStatus.WaitingAcceptance,
-        QuoteStatus.Accepted
-    };
+        QuoteStatus.Accepted,
+    ];
 
     public enum QuoteStatus
     {
@@ -27,15 +26,15 @@ public class Quote
         Accepted,
         NoInventory,
         Cancelled,
-        Filled
+        Filled,
     }
 
     public QuoteKey Key => new QuoteKey(Id, AccountId);
     public AccountIdentifier Account => new AccountIdentifier(AccountId);
 
-    public string Id { get; init; }
-    public string Symbol { get; init; } = null!;
-    public string AccountId { get; init; } = null!;
+    public required string Id { get; init; }
+    public required string Symbol { get; init; }
+    public required string AccountId { get; init; }
     public int RequestedQuantity { get; set; }
     public decimal Price { get; set; }
 
@@ -43,9 +42,10 @@ public class Quote
 
     public bool WaitingProvidersTimeout { get; set; }
 
-    public int ActualQuantity => ProviderBuyOrderResponses.Values
-        .SelectMany(x => x.response.BoughtAssets)
-        .Sum(x => x.Quantity);
+    public int ActualQuantity =>
+        ProviderBuyOrderResponses
+            .Values.SelectMany(x => x.response.BoughtAssets)
+            .Sum(x => x.Quantity);
 
     private QuoteStatus _status;
 
@@ -67,11 +67,15 @@ public class Quote
     public Dictionary<string, ProviderQuoteRequest> ProviderQuoteRequests { get; set; } =
         new(StringComparer.OrdinalIgnoreCase);
 
+    public Dictionary<
+        string,
+        (string provider, ProviderBuyRequest request)
+    > ProviderBuyOrderRequests { get; } = new();
 
-    public Dictionary<string, (string provider, ProviderBuyRequest request)> ProviderBuyOrderRequests { get; } =
-        new();
-
-    public Dictionary<string, (string provider, ProviderBuyResponse response)> ProviderBuyOrderResponses { get; } = new();
+    public Dictionary<
+        string,
+        (string provider, ProviderBuyResponse response)
+    > ProviderBuyOrderResponses { get; } = new();
 
     public PriceCalculationResult? PriceCalculationResult { get; set; }
     public decimal MaxPriceForAutoApprove { get; set; }
@@ -101,10 +105,11 @@ public class Quote
     {
         return new ProviderBuyRequest()
         {
+            Id = Guid.NewGuid().ToString(),
             QuoteId = this.Id,
             Symbol = this.Symbol,
             AccountId = this.AccountId,
-            RequestedAssets = new List<PriceInfo>(),
+            RequestedAssets = [],
         };
     }
 
@@ -112,14 +117,14 @@ public class Quote
     {
         return new ProviderQuoteRequest()
         {
+            Id = Guid.NewGuid().ToString(),
             Quantity = this.RequestedQuantity,
             Symbol = this.Symbol,
             AccountId = this.AccountId,
-            QuoteId = this.Id
+            QuoteId = this.Id,
         };
     }
 
-    [Obsolete("Use extension method instead. ToDo: extract sources calculation logic")]
     public QuoteResponse ToQuoteResponse(QuoteResponseStatusEnum status)
     {
         return new QuoteResponse
@@ -133,17 +138,18 @@ public class Quote
             FillQty = this.QuantityToBuy,
             Price = this.Price,
             // todo: extract sources calculation logic
-            Sources = this.ProviderBuyOrderRequests.Values
-                .SelectMany(x => x.request.RequestedAssets.Select(priceInfo => (x.provider, priceInfo)))
+            Sources = this
+                .ProviderBuyOrderRequests.Values.SelectMany(x =>
+                    x.request.RequestedAssets.Select(priceInfo => (x.provider, priceInfo))
+                )
                 .Select(x =>
                 {
                     var provider = x.provider;
                     var priceInfo = x.priceInfo;
                     //TODO: most likely can be optimized
-                    var discountedPriceObject = this.PriceCalculationResult?.Offers
-                        .FirstOrDefault(ddp =>
-                            ddp.Source == priceInfo.Source &&
-                            ddp.Price == priceInfo.Price);
+                    var discountedPriceObject = this.PriceCalculationResult?.Offers.FirstOrDefault(
+                        ddp => ddp.Source == priceInfo.Source && ddp.Price == priceInfo.Price
+                    );
                     return new QuoteSourceInfo()
                     {
                         Provider = provider,
@@ -152,7 +158,8 @@ public class Quote
                         Qty = priceInfo.Quantity,
                         DiscountedPrice = discountedPriceObject?.DiscountedPrice ?? 0,
                     };
-                }).ToArray()
+                })
+                .ToArray(),
         };
     }
 }

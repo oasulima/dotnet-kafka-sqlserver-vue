@@ -1,7 +1,7 @@
-﻿using Confluent.Kafka;
-using Microsoft.Extensions.Options;
-using Admin.API.Options;
+﻿using Admin.API.Options;
 using Admin.API.Services.Interfaces;
+using Confluent.Kafka;
+using Microsoft.Extensions.Options;
 using Shared;
 
 namespace Admin.API.HostedServices;
@@ -12,15 +12,17 @@ public class NotificationKafkaListener : BackgroundService
     private readonly ConsumerConfig _consumerConfig;
     private readonly string _topic;
 
-    public NotificationKafkaListener(IOptions<KafkaOptions> kafkaOptions,
-        INotificationsServiceBase adminUiHubMethods)
+    public NotificationKafkaListener(
+        IOptions<KafkaOptions> kafkaOptions,
+        INotificationsServiceBase adminUiHubMethods
+    )
     {
         _adminUiHubMethods = adminUiHubMethods;
         _consumerConfig = new ConsumerConfig
         {
             BootstrapServers = kafkaOptions.Value.Servers,
             GroupId = kafkaOptions.Value.GroupId,
-            AutoOffsetReset = AutoOffsetReset.Latest
+            AutoOffsetReset = AutoOffsetReset.Latest,
         };
         _topic = kafkaOptions.Value.NotificationTopic;
     }
@@ -29,7 +31,9 @@ public class NotificationKafkaListener : BackgroundService
     {
         return Task.Run(async () =>
         {
-            using var consumer = new ConsumerBuilder<string, GroupedNotification[]>(_consumerConfig).SetValueDeserializer(new KafkaDeserializer<GroupedNotification[]>()).Build();
+            using var consumer = new ConsumerBuilder<string, GroupedNotification[]>(_consumerConfig)
+                .SetValueDeserializer(new KafkaDeserializer<GroupedNotification[]>())
+                .Build();
             consumer.Subscribe(_topic);
             try
             {

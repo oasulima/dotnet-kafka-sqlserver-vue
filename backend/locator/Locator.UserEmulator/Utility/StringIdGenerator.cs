@@ -1,4 +1,4 @@
-﻿namespace TradeZero.Api.Locator.Utility;
+﻿namespace Locator.UserEmulator.Utility;
 
 public static class StringIdGenerator
 {

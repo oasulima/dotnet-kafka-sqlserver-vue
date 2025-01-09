@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Linq;
 using Admin.API.Models.Cache;
 using Admin.API.Services.Interfaces;
 using Shared.Quote;
@@ -30,7 +29,7 @@ public class LocatesCache : ILocatesCache
             Status = message.Status,
             ErrorMessage = message.ErrorMessage,
             Source = message.Source,
-            SourceDetails = message.Sources.ToArray()
+            SourceDetails = message.Sources,
         };
 
         _locatesCache.Add(entity);

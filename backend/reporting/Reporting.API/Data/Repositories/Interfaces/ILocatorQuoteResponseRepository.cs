@@ -6,7 +6,12 @@ namespace Reporting.API.Data.Repositories.Interfaces;
 
 public interface ILocatorQuoteResponseRepository
 {
-  LocatorQuoteResponseDb[] GetLocatorQuoteResponses(DateTime from, DateTime to, int take, int skip);
-  void Add(LocatorQuoteResponseDb model);
-  LocatesReportDataDb[] GetLocatesReportData(GetLocatesReportDataDbParams model);
+    LocatorQuoteResponseDb[] GetLocatorQuoteResponses(
+        DateTime from,
+        DateTime to,
+        int take,
+        int skip
+    );
+    void Add(LocatorQuoteResponseDb model);
+    LocatesReportDataDb[] GetLocatesReportData(GetLocatesReportDataDbParams model);
 }

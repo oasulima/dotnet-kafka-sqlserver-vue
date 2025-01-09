@@ -2,11 +2,11 @@
 
 public class KafkaOptions
 {
-    public string Servers { get; set; } = string.Empty;
-    public string GroupId { get; set; } = string.Empty;
-    public string LocatorQuoteResponseTopic { get; set; } = string.Empty;
-    public string NotificationTopic { get; set; } = string.Empty;
-    public string InvalidateCacheCommandTopic { get; set; } = string.Empty;
-    public string InternalInventoryItemChangeTopic { get; set; } = string.Empty;
-    public string LocatorQuoteRequestTopic { get; set; } = string.Empty;
+    public required string Servers { get; set; }
+    public required string GroupId { get; set; }
+    public required string LocatorQuoteResponseTopic { get; set; }
+    public required string NotificationTopic { get; set; }
+    public required string InvalidateCacheCommandTopic { get; set; }
+    public required string InternalInventoryItemChangeTopic { get; set; }
+    public required string LocatorQuoteRequestTopic { get; set; }
 }

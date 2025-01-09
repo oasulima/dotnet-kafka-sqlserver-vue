@@ -2,5 +2,5 @@
 
 public class AppOptions
 {
-    public TimeOnly DayDataCleanupTimeUtc { get; set; }
+    public required TimeOnly DayDataCleanupTimeUtc { get; set; }
 }

@@ -19,13 +19,14 @@ public class LocatorQuoteResponseKafkaListener : BackgroundService
     public LocatorQuoteResponseKafkaListener(
         IOptions<KafkaOptions> kafkaOptions,
         ILocatesReportDataService locatesReportDataService,
-        IQuoteDetailsRepository quoteDetailsRepository)
+        IQuoteDetailsRepository quoteDetailsRepository
+    )
     {
         _consumerConfig = new ConsumerConfig
         {
             BootstrapServers = kafkaOptions.Value.Servers,
             GroupId = kafkaOptions.Value.GroupId,
-            AutoOffsetReset = AutoOffsetReset.Latest
+            AutoOffsetReset = AutoOffsetReset.Latest,
         };
         _topic = kafkaOptions.Value.QuoteResponseTopic;
         this.locatesReportDataService = locatesReportDataService;
@@ -36,16 +37,25 @@ public class LocatorQuoteResponseKafkaListener : BackgroundService
     {
         return Task.Run(async () =>
         {
-            using var consumer = new ConsumerBuilder<string, QuoteResponse>(_consumerConfig).SetValueDeserializer(new KafkaDeserializer<QuoteResponse>()).Build();
+            using var consumer = new ConsumerBuilder<string, QuoteResponse>(_consumerConfig)
+                .SetValueDeserializer(new KafkaDeserializer<QuoteResponse>())
+                .Build();
             consumer.Subscribe(_topic);
             try
             {
                 while (!stoppingToken.IsCancellationRequested)
                 {
-                    await consumer.ConsumeWithTracing((result) =>
-                    {
-                        ProcessMessage(result, locatesReportDataService, quoteDetailsRepository);
-                    }, stoppingToken);
+                    await consumer.ConsumeWithTracing(
+                        (result) =>
+                        {
+                            ProcessMessage(
+                                result,
+                                locatesReportDataService,
+                                quoteDetailsRepository
+                            );
+                        },
+                        stoppingToken
+                    );
                 }
             }
             finally
@@ -55,13 +65,20 @@ public class LocatorQuoteResponseKafkaListener : BackgroundService
         });
     }
 
-    private void ProcessMessage(ConsumeResult<string, QuoteResponse> consumeResult, ILocatesReportDataService locatesReportDataService, IQuoteDetailsRepository quoteDetailsRepository)
+    private void ProcessMessage(
+        ConsumeResult<string, QuoteResponse> consumeResult,
+        ILocatesReportDataService locatesReportDataService,
+        IQuoteDetailsRepository quoteDetailsRepository
+    )
     {
         var message = consumeResult.Message.Value;
 
-        locatesReportDataService.AddLocatorQuoteResponse(new LocatorQuoteResponse(message));
+        locatesReportDataService.AddLocatorQuoteResponse(LocatorQuoteResponse.From(message));
 
-        if (QuoteResponseStatus.FinalizedStatuses.Contains(message.Status))
+        if (
+            QuoteResponseStatus.FinalizedStatuses.Contains(message.Status)
+            && message.DetailsJson != null
+        )
         {
             quoteDetailsRepository.AddResponseDetailsJson(message.Id, message.DetailsJson);
         }

@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using Locator.API.Models.Internal;
+﻿using Locator.API.Models.Internal;
 using Locator.API.Services.Interfaces;
 using Shared;
 using Shared.Settings;
@@ -8,8 +6,7 @@ using Shared.Settings;
 namespace Locator.API.Utility;
 
 public static class Mappers
-{ 
-
+{
     public static ProviderSetting ToProviderSetting(this ProviderSettingRequest providerSettingReq)
     {
         return new ProviderSetting
@@ -21,7 +18,8 @@ public static class Mappers
         };
     }
 
-    private static T ThrowIfNull<T>(T? value) where T : class
+    private static T ThrowIfNull<T>(T? value)
+        where T : class
     {
         if (value == null)
         {
@@ -31,7 +29,8 @@ public static class Mappers
         return value;
     }
 
-    private static T ThrowIfNull<T>(T? value) where T : struct
+    private static T ThrowIfNull<T>(T? value)
+        where T : struct
     {
         if (value == null)
         {
@@ -52,7 +51,7 @@ public static class Mappers
             BuyRequestTopic = providerSetting.BuyRequestTopic,
             BuyResponseTopic = providerSetting.BuyResponseTopic,
             QuoteRequestTopic = providerSetting.QuoteRequestTopic,
-            QuoteResponseTopic = providerSetting.QuoteResponseTopic
+            QuoteResponseTopic = providerSetting.QuoteResponseTopic,
         };
     }
 
@@ -60,34 +59,45 @@ public static class Mappers
     {
         return new ProviderBuyRequest
         {
+            Id = Guid.NewGuid().ToString(),
             QuoteId = info.QuoteId,
             Symbol = info.Symbol,
             AccountId = info.AccountId,
             RequestedAssets = new List<PriceInfo>(),
         };
-    } 
+    }
 
     public static string ToResponseDetailsJson(this Quote quote)
     {
         var obj = new QuoteResponseDetails(
             PriceCalculationResult: quote.PriceCalculationResult,
-            Quote: quote);
+            Quote: quote
+        );
 
-        return JsonConvert.SerializeObject(obj, DefaultJsonConverters);
+        return Converter.Serialize(obj);
     }
 
-    public static string ToResponseDetailsJson(this Quote quote, QuoteResponseStatusEnum status, string? message)
+    public static string ToResponseDetailsJson(
+        this Quote quote,
+        QuoteResponseStatusEnum status,
+        string? message
+    )
     {
         var obj = new QuoteResponseDetails(
             PriceCalculationResult: quote.PriceCalculationResult,
             Status: status,
             Message: message,
-            Quote: quote);
+            Quote: quote
+        );
 
-        return JsonConvert.SerializeObject(obj, DefaultJsonConverters);
+        return Converter.Serialize(obj);
     }
 
-    public static string ToResponseDetailsJson(this QuoteRequest quoteRequest, QuoteResponseStatusEnum status, string? message)
+    public static string ToResponseDetailsJson(
+        this QuoteRequest quoteRequest,
+        QuoteResponseStatusEnum status,
+        string? message
+    )
     {
         var obj = new QuoteResponseDetails(
             QuoteRequest: quoteRequest,
@@ -95,10 +105,14 @@ public static class Mappers
             Message: message
         );
 
-        return JsonConvert.SerializeObject(obj, DefaultJsonConverters);
+        return Converter.Serialize(obj);
     }
 
-    public static QuoteResponse ToQuoteResponse(this QuoteRequest quoteRequest, QuoteResponseStatusEnum status, string? errorMessage)
+    public static QuoteResponse ToQuoteResponse(
+        this QuoteRequest quoteRequest,
+        QuoteResponseStatusEnum status,
+        string? errorMessage
+    )
     {
         return new QuoteResponse
         {
@@ -115,7 +129,11 @@ public static class Mappers
         };
     }
 
-    public static QuoteResponse ToQuoteResponse(this Quote quote, QuoteResponseStatusEnum status, string? errorMessage)
+    public static QuoteResponse ToQuoteResponse(
+        this Quote quote,
+        QuoteResponseStatusEnum status,
+        string? errorMessage
+    )
     {
         return new QuoteResponse
         {
@@ -131,9 +149,4 @@ public static class Mappers
             DetailsJson = quote.ToResponseDetailsJson(status, errorMessage),
         };
     }
-
-    private static JsonConverter[] DefaultJsonConverters { get; } =
-    {
-        new StringEnumConverter()
-    };
 }

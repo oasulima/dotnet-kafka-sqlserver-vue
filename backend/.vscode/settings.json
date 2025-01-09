@@ -1,3 +1,22 @@
 {
-    "dotnet.defaultSolution": "LocatorProjects.sln"
+    "dotnet.defaultSolution": "LocatorProjects.sln",
+    "workbench.tree.indent": 15,
+    "files.autoSave": "afterDelay",
+    "git.autofetch": true,
+    "git.alwaysShowStagedChangesResourceGroup": true,
+    "git.fetchOnPull": true,
+    "git.showPushSuccessNotification": true,
+    "scm.diffDecorationsGutterVisibility": "hover",
+    "scm.diffDecorationsGutterAction": "none",
+    "editor.minimap.enabled": false,
+    "dotnetAcquisitionExtension.enableTelemetry": false,
+    "dotnet.backgroundAnalysis.analyzerDiagnosticsScope": "fullSolution",
+    "dotnet.backgroundAnalysis.compilerDiagnosticsScope": "fullSolution",
+    "dotnet.automaticallySyncWithActiveItem": true,
+    "dotnet.testWindow.useTestingPlatformProtocol": true,
+    "testing.coverageToolbarEnabled": true,
+    "[csharp]": {
+        "editor.defaultFormatter": "csharpier.csharpier-vscode"
+    },
+    "editor.detectIndentation": false,
 }

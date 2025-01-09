@@ -15,7 +15,7 @@ export interface IInventoryDatabaseModel {
   Item: InternalInventoryItem;
   HistoryItem: boolean;
   IsCoveringItem: boolean;
-  CoveredItemId: string | null;
+  CoveredItemId?: string | null;
   CoveringItems?: IInventoryDatabaseModel[];
   updating?: boolean;
 }

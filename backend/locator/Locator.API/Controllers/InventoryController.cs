@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
+﻿using Locator.API.Services.Interfaces;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Locator.API.Services.Interfaces;
 using Shared.Locator;
 
 namespace Locator.API.Controllers;

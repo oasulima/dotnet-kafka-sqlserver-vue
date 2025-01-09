@@ -1,7 +1,6 @@
-﻿using System;
-using Microsoft.Extensions.Options;
-using Admin.API.Options;
+﻿using Admin.API.Options;
 using Admin.API.Services.Interfaces;
+using Microsoft.Extensions.Options;
 
 namespace Admin.API.Services;
 

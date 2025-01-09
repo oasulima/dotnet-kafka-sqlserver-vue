@@ -1,0 +1,17 @@
+{
+	"Arrange Act Assert": {
+		"prefix": "aaa",
+		"body": [
+			"// Arrange",
+			"$0",
+			"",
+			"// Act",
+			"",
+			"",
+			"// Assert",
+			"",
+		],
+		"description": "Test template",
+		"scope": "csharp"
+	}
+}

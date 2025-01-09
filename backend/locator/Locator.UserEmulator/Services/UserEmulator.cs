@@ -1,20 +1,23 @@
-﻿using TradeZero.Api.Locator.Utility;
-using TradeZero.Locator.Emulator.Options;
+﻿using Locator.UserEmulator;
+using Locator.UserEmulator.Options;
+using Locator.UserEmulator.Utility;
 using Shared;
 
-namespace TradeZero.Locator.Emulator.Services;
+namespace Locator.UserEmulator.Services;
 
- 
-
-public class UserEmulator  
+public class UserEmulator
 {
     private readonly QuoteRegistrar _quoteRegistrar;
     private readonly RandomHelper _randomHelper;
     private readonly EmulatorOptions _emulatorOptions;
     private readonly int _senderIndex;
 
-    public UserEmulator(QuoteRegistrar quoteRegistrar, RandomHelper randomHelper,
-        int senderIndex, EmulatorOptions emulatorOptions)
+    public UserEmulator(
+        QuoteRegistrar quoteRegistrar,
+        RandomHelper randomHelper,
+        int senderIndex,
+        EmulatorOptions emulatorOptions
+    )
     {
         _quoteRegistrar = quoteRegistrar;
         _randomHelper = randomHelper;
@@ -34,15 +37,15 @@ public class UserEmulator
 
                 var quote = GetRandomQuote();
 
-
                 SharedData.Log(
-                    $"Before Quote: id:{quote.Id}; sym: {quote.Symbol}; reqqty:{quote.Quantity}; account:{quote.AccountId}");
+                    $"Before Quote: id:{quote.Id}; sym: {quote.Symbol}; reqqty:{quote.Quantity}; account:{quote.AccountId}"
+                );
                 var quoteResponse = await _quoteRegistrar.QuoteRequestAsync(quote);
                 SharedData.Log(
-                    $"After Quote: id:{quote.Id}; sym: {quote.Symbol}; reqqty:{quote.Quantity}; account:{quote.AccountId}");
+                    $"After Quote: id:{quote.Id}; sym: {quote.Symbol}; reqqty:{quote.Quantity}; account:{quote.AccountId}"
+                );
 
                 SharedData.IncrementQuotes();
-
 
                 if (quoteResponse.Status != QuoteResponseStatusEnum.WaitingAcceptance)
                 {
@@ -52,31 +55,43 @@ public class UserEmulator
 
                 if (_randomHelper.ShouldAccept())
                 {
-                    SharedData.Log($"Before Accept: id:{quote.Id}; symbol:{quote.Symbol}; account:{quote.AccountId}");
+                    SharedData.Log(
+                        $"Before Accept: id:{quote.Id}; symbol:{quote.Symbol}; account:{quote.AccountId}"
+                    );
                     var acceptQuoteResponse = await _quoteRegistrar.AcceptQuote(quote);
 
                     SharedData.Log(
-                        $"After Accept: id:{quote.Id}; fillqty:{acceptQuoteResponse.FillQty}; symbol:{acceptQuoteResponse.Symbol};price:{acceptQuoteResponse.Price: #.####}; sources:{string.Join("/", acceptQuoteResponse.Sources.Select(x => $"price:{x.Price: #.####}|qty:{x.Qty}|source:{x.Source}|price:{x.Price: #.####}"))}");
+                        $"After Accept: id:{quote.Id}; fillqty:{acceptQuoteResponse.FillQty}; symbol:{acceptQuoteResponse.Symbol};price:{acceptQuoteResponse.Price: #.####}; sources:{string.Join("/", acceptQuoteResponse.Sources.Select(x => $"price:{x.Price: #.####}|qty:{x.Qty}|source:{x.Source}|price:{x.Price: #.####}"))}"
+                    );
                     SharedData.IncrementAccepts();
                 }
                 else if (_randomHelper.ShouldCancel())
                 {
-                    SharedData.Log($"Before Cancel {quote.Id}; symbol:{quote.Symbol}; account:{quote.AccountId}");
+                    SharedData.Log(
+                        $"Before Cancel {quote.Id}; symbol:{quote.Symbol}; account:{quote.AccountId}"
+                    );
                     await _quoteRegistrar.CancelQuote(quote);
-                    SharedData.Log($"After Cancel {quote.Id}; symbol:{quote.Symbol}; account:{quote.AccountId}");
+                    SharedData.Log(
+                        $"After Cancel {quote.Id}; symbol:{quote.Symbol}; account:{quote.AccountId}"
+                    );
                     SharedData.IncrementCancels();
                     continue;
                 }
                 else
                 {
-                    SharedData.Log($"Before Ignore {quote.Id}; symbol:{quote.Symbol}; account:{quote.AccountId}");
+                    SharedData.Log(
+                        $"Before Ignore {quote.Id}; symbol:{quote.Symbol}; account:{quote.AccountId}"
+                    );
                     await _quoteRegistrar.IgnoreQuote(quote);
-                    SharedData.Log($"After Ignore {quote.Id}; symbol:{quote.Symbol}; account:{quote.AccountId}");
+                    SharedData.Log(
+                        $"After Ignore {quote.Id}; symbol:{quote.Symbol}; account:{quote.AccountId}"
+                    );
                     SharedData.IncrementIgnores();
                     continue;
                 }
 
-                if (allowNewQuotes.IsCancellationRequested) continue;
+                if (allowNewQuotes.IsCancellationRequested)
+                    continue;
 
                 //if (_randomHelper.ShouldOpenShort())
                 //{
@@ -128,7 +143,8 @@ public class UserEmulator
             AutoApprove = false,
             Quantity = _randomHelper.GetRandomQuoteQuantity(),
             MaxPriceForAutoApprove = int.MaxValue,
-            RequestType = QuoteRequest.RequestTypeEnum.QuoteRequest
+            RequestType = QuoteRequest.RequestTypeEnum.QuoteRequest,
+            Time = DateTime.UtcNow,
         };
     }
 

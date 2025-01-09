@@ -1,7 +1,7 @@
-using Confluent.Kafka;
-using Microsoft.Extensions.Options;
 using Admin.API.Options;
 using Admin.API.Services.Interfaces;
+using Confluent.Kafka;
+using Microsoft.Extensions.Options;
 using Shared;
 
 namespace Admin.API.HostedServices;
@@ -12,14 +12,17 @@ public class SyncCommandListener : BackgroundService
     private readonly ConsumerConfig _consumerConfig;
     private readonly string _topic;
 
-    public SyncCommandListener(IOptions<KafkaOptions> kafkaOptions, IProviderSettingCache providerSettingCache)
+    public SyncCommandListener(
+        IOptions<KafkaOptions> kafkaOptions,
+        IProviderSettingCache providerSettingCache
+    )
     {
         _providerSettingCache = providerSettingCache;
         _consumerConfig = new ConsumerConfig
         {
             BootstrapServers = kafkaOptions.Value.Servers,
             GroupId = kafkaOptions.Value.GroupId,
-            AutoOffsetReset = AutoOffsetReset.Latest
+            AutoOffsetReset = AutoOffsetReset.Latest,
         };
         _topic = kafkaOptions.Value.InvalidateCacheCommandTopic;
     }
@@ -28,7 +31,9 @@ public class SyncCommandListener : BackgroundService
     {
         return Task.Run(async () =>
         {
-            using var consumer = new ConsumerBuilder<string, SyncCommand>(_consumerConfig).SetValueDeserializer(new KafkaDeserializer<SyncCommand>()).Build();
+            using var consumer = new ConsumerBuilder<string, SyncCommand>(_consumerConfig)
+                .SetValueDeserializer(new KafkaDeserializer<SyncCommand>())
+                .Build();
             consumer.Subscribe(_topic);
             try
             {
@@ -49,10 +54,9 @@ public class SyncCommandListener : BackgroundService
         var message = consumeResult.Message.Value;
         Action action = message switch
         {
-            SyncCommand.InvalidateCache(SyncCommand.CacheTypeEnum.ProviderSettings)
-                => () => _providerSettingCache.RefreshSettings().GetAwaiter().GetResult(),
-            _ => () => { }
-            ,
+            SyncCommand.InvalidateCache(SyncCommand.CacheTypeEnum.ProviderSettings) => () =>
+                _providerSettingCache.RefreshSettings().GetAwaiter().GetResult(),
+            _ => () => { },
         };
         action();
     }

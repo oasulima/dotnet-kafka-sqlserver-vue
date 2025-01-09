@@ -32,7 +32,6 @@ services:
       retries: 20
   user-emulator:
     profiles: ['all', 'emulator']
-    restart: always
     build:
       dockerfile: locator/Locator.UserEmulator/Dockerfile
       context: ./backend/
@@ -147,11 +146,11 @@ services:
   internal-inventory-provider-db-migrations:
     profiles: ['all', 'services']
     build:
-      dockerfile: internal_inventory/InternalInventory.DbMigrations/Dockerfile
+      dockerfile: internal_inventory/src/InternalInventory.DbMigrations/Dockerfile
       context: ./backend/
     env_file:
-      - ./backend/internal_inventory/InternalInventory.DbMigrations/env/common.env
-      - ./backend/internal_inventory/InternalInventory.DbMigrations/env/local.env
+      - ./backend/internal_inventory/src/InternalInventory.DbMigrations/env/common.env
+      - ./backend/internal_inventory/src/InternalInventory.DbMigrations/env/local.env
     networks:
       - application
     # depends_on:
@@ -162,11 +161,11 @@ services:
     profiles: ['all', 'services']
     restart: always
     build:
-      dockerfile: internal_inventory/InternalInventory.API/Dockerfile
+      dockerfile: internal_inventory/src/InternalInventory.API/Dockerfile
       context: ./backend/
     env_file:
-      - ./backend/internal_inventory/InternalInventory.API/env/common.env
-      - ./backend/internal_inventory/InternalInventory.API/env/local.env
+      - ./backend/internal_inventory/src/InternalInventory.API/env/common.env
+      - ./backend/internal_inventory/src/InternalInventory.API/env/local.env
     networks:
       - application
     ports:

@@ -10,7 +10,8 @@
                 "redhat.vscode-xml",
                 "fullstackspider.visual-nuget",
                 "eamodio.gitlens",
-                "ms-dotnettools.vscodeintellicode-csharp"
+                "ms-dotnettools.vscodeintellicode-csharp",
+                "csharpier.csharpier-vscode"
             ]
         }
     },

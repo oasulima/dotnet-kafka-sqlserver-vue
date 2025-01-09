@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Admin.API.Models;
+﻿using Admin.API.Models;
 using Admin.API.Services.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 using Shared;
 
 namespace Admin.API.Controllers;
@@ -18,11 +18,10 @@ public class OptionsController : ControllerBase
     [HttpGet("/api/options/sources")]
     public SelectValue<string>[] GetSources()
     {
-        return _providerSettingCache.GetActiveExternalQuery().Select(x => new SelectValue<string>()
-        {
-            Value = x.ProviderId,
-            Label = x.Name
-        }).ToArray();
+        return _providerSettingCache
+            .GetActiveExternalQuery()
+            .Select(x => new SelectValue<string>() { Value = x.ProviderId, Label = x.Name })
+            .ToArray();
     }
 
     [HttpGet("/api/options/creating-types")]

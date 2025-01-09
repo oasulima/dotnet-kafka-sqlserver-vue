@@ -1,7 +1,7 @@
-﻿using Confluent.Kafka;
-using Microsoft.Extensions.Options;
-using Admin.API.Options;
+﻿using Admin.API.Options;
 using Admin.API.Services.Interfaces;
+using Confluent.Kafka;
+using Microsoft.Extensions.Options;
 using Shared;
 
 namespace Admin.API.HostedServices;
@@ -12,14 +12,17 @@ public class LocatorQuoteResponseKafkaListener : BackgroundService
     private readonly string _topic;
     private readonly IMessageHandler _messageHandler;
 
-    public LocatorQuoteResponseKafkaListener(IOptions<KafkaOptions> kafkaOptions, IMessageHandler messageHandler)
+    public LocatorQuoteResponseKafkaListener(
+        IOptions<KafkaOptions> kafkaOptions,
+        IMessageHandler messageHandler
+    )
     {
         _messageHandler = messageHandler;
         _consumerConfig = new ConsumerConfig
         {
             BootstrapServers = kafkaOptions.Value.Servers,
             GroupId = kafkaOptions.Value.GroupId,
-            AutoOffsetReset = AutoOffsetReset.Latest
+            AutoOffsetReset = AutoOffsetReset.Latest,
         };
         _topic = kafkaOptions.Value.LocatorQuoteResponseTopic;
     }
@@ -28,7 +31,9 @@ public class LocatorQuoteResponseKafkaListener : BackgroundService
     {
         return Task.Run(async () =>
         {
-            using var consumer = new ConsumerBuilder<string, QuoteResponse>(_consumerConfig).SetValueDeserializer(new KafkaDeserializer<QuoteResponse>()).Build();
+            using var consumer = new ConsumerBuilder<string, QuoteResponse>(_consumerConfig)
+                .SetValueDeserializer(new KafkaDeserializer<QuoteResponse>())
+                .Build();
             consumer.Subscribe(_topic);
             try
             {

@@ -16,8 +16,15 @@ public class QuoteDetailsRepository : IQuoteDetailsRepository
     {
         var parameters = new[]
         {
-            new DataParameter($"QuoteId", LinqToDB.DataType.VarChar) {Value = quoteId, Size = 100},
-            new DataParameter($"ResponseDetailsJson", LinqToDB.DataType.NText) {Value = responseDetailsJson},
+            new DataParameter($"QuoteId", LinqToDB.DataType.VarChar)
+            {
+                Value = quoteId,
+                Size = 100,
+            },
+            new DataParameter($"ResponseDetailsJson", LinqToDB.DataType.NText)
+            {
+                Value = responseDetailsJson,
+            },
         };
 
         using var scope = serviceScopeFactory.CreateScope();
@@ -29,7 +36,7 @@ public class QuoteDetailsRepository : IQuoteDetailsRepository
     {
         var parameters = new[]
         {
-            new DataParameter("@QuoteId", LinqToDB.DataType.NVarChar) {Value = quoteId},
+            new DataParameter("@QuoteId", LinqToDB.DataType.NVarChar) { Value = quoteId },
         };
 
         using var scope = serviceScopeFactory.CreateScope();

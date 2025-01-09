@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Shared
+﻿namespace Shared
 {
     public class QuoteRequest
     {
@@ -8,26 +6,21 @@ namespace Shared
         {
             QuoteRequest,
             QuoteAccept,
-            QuoteCancel
-        }
-        
-        public QuoteRequest()
-        {
-            Time = DateTime.UtcNow;
+            QuoteCancel,
         }
 
-        public string Id { get; set; }
-        public RequestTypeEnum RequestType { get; set; }
+        public required string Id { get; set; }
+        public required RequestTypeEnum RequestType { get; set; }
 
-        public string Symbol { get; set; }
-        public int Quantity { get; set; }
-        public string AccountId { get; set; }
+        public required string Symbol { get; set; }
+        public required int Quantity { get; set; }
+        public required string AccountId { get; set; }
 
-        public bool AllowPartial { get; set; }
+        public required bool AllowPartial { get; set; }
 
-        public bool AutoApprove { get; set; }
-        public decimal MaxPriceForAutoApprove { get; set; }
-        public DateTime Time { get; set; }
+        public required bool AutoApprove { get; set; }
+        public required decimal MaxPriceForAutoApprove { get; set; }
+        public required DateTime Time { get; set; } = DateTime.UtcNow;
 
         public override string ToString()
         {

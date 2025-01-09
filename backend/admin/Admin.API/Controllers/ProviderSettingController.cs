@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Admin.API.Services.Interfaces;
+﻿using Admin.API.Services.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 using Shared.Refit;
 using Shared.Settings;
 
@@ -30,21 +30,19 @@ public class ProviderSettingController : ControllerBase
     }
 
     [HttpPost("/api/settings/provider")]
-    public Task<ProviderSetting> AddProviderSetting(
-        [FromBody] ProviderSettingRequest providerSettingReq)
+    public Task AddProviderSetting([FromBody] ProviderSettingRequest providerSettingReq)
     {
         return _locatorApi.AddProviderSetting(providerSettingReq);
     }
 
     [HttpPut("/api/settings/provider")]
-    public Task<ProviderSetting> UpdateProviderSetting(
-        [FromBody] ProviderSettingRequest providerSettingReq)
+    public Task UpdateProviderSetting([FromBody] ProviderSettingRequest providerSettingReq)
     {
         return _locatorApi.UpdateProviderSetting(providerSettingReq);
     }
 
     [HttpDelete("/api/settings/provider/{providerId}")]
-    public Task<bool> DeleteProviderSetting([FromRoute] string providerId)
+    public Task DeleteProviderSetting([FromRoute] string providerId)
     {
         return _locatorApi.DeleteProviderSetting(providerId);
     }

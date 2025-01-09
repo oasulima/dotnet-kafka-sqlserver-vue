@@ -7,7 +7,7 @@ CREATE PROCEDURE [dbo].[GetLocatesReportData](
     @Take as INT,
     @From as datetime = NULL,
     @To as datetime = NULL,
-    @OrderBy as nvarchar(100) = NULL,
+    @OrderBy as nvarchar(100),
     @Symbol as nvarchar(100) = NULL,
     @Status as TINYINT = NULL,
     @AccountId as nvarchar(100) = NULL,

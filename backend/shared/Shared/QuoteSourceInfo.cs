@@ -2,11 +2,11 @@
 {
     public class QuoteSourceInfo
     {
-        public string Provider { get; set; }
-        public string Source { get; set; }
-        public decimal Price { get; set; }
-        public int Qty { get; set; }
-        public decimal DiscountedPrice { get; set; }
+        public required string Provider { get; set; }
+        public required string Source { get; set; }
+        public required decimal Price { get; set; }
+        public required int Qty { get; set; }
+        public required decimal DiscountedPrice { get; set; }
 
         public override string ToString()
         {

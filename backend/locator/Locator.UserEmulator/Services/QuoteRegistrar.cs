@@ -1,9 +1,9 @@
 ﻿using System.Collections.Immutable;
-using TradeZero.Locator.Emulator.Kafka;
+using Locator.UserEmulator;
+using Locator.UserEmulator.Kafka;
 using Shared;
 
-namespace TradeZero.Locator.Emulator.Services;
-
+namespace Locator.UserEmulator.Services;
 
 public class QuoteRegistrar
 {
@@ -24,15 +24,15 @@ public class QuoteRegistrar
         return tcs.Task;
     }
 
-    private readonly IImmutableSet<QuoteResponseStatusEnum> _quoteStatusesToRegister = QuoteResponseStatus.FinalizedStatuses
-        .Add(QuoteResponseStatusEnum.WaitingAcceptance);
+    private readonly IImmutableSet<QuoteResponseStatusEnum> _quoteStatusesToRegister =
+        QuoteResponseStatus.FinalizedStatuses.Add(QuoteResponseStatusEnum.WaitingAcceptance);
 
     public void RegisterQuoteResponse(QuoteResponse response)
     {
         SharedData.Log(
-            $"RegisterQuoteResponse: {response.Id}: {response.Status}; symbol:{response.Symbol}; account:{response.AccountId}; Error:{response.ErrorMessage};");
-        if (_quoteStatusesToRegister.Contains(response.Status)
-           )
+            $"RegisterQuoteResponse: {response.Id}: {response.Status}; symbol:{response.Symbol}; account:{response.AccountId}; Error:{response.ErrorMessage};"
+        );
+        if (_quoteStatusesToRegister.Contains(response.Status))
         {
             if (SharedData.Cache.Remove(response.Id, out var tcs))
             {
@@ -42,7 +42,8 @@ public class QuoteRegistrar
             {
                 SharedData.Log(
                     $"Couldn't remove: {response.Id}: {response.Status}; symbol:{response.Symbol}; account:{response.AccountId}",
-                    false);
+                    false
+                );
             }
         }
     }

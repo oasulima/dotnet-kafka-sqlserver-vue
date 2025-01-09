@@ -1,14 +1,14 @@
-﻿using Microsoft.Extensions.Options;
-using Shared;
-using Locator.API.Models.Internal;
+﻿using Locator.API.Models.Internal;
 using Locator.API.Models.Options;
 using Locator.API.Services.Interfaces;
 using Locator.API.Storages.Interfaces;
 using Locator.API.Utility;
+using Microsoft.Extensions.Options;
+using Shared;
 using Shared.Locator;
 using Shared.Quote;
-using PriceInfo = Shared.PriceInfo;
 using static Locator.API.Services.PriceCalculationService;
+using PriceInfo = Shared.PriceInfo;
 
 namespace Locator.API.Services;
 
@@ -24,7 +24,8 @@ public class LocatorService : ILocatorService
     private readonly INotificationService _notificationService;
     private readonly IAutoDisableProvidersService _autoDisableProvidersService;
 
-    public LocatorService(IQuoteStorage quoteStorage,
+    public LocatorService(
+        IQuoteStorage quoteStorage,
         IEventSender eventSender,
         IInventoryService inventoryService,
         ISettingService settingService,
@@ -32,7 +33,8 @@ public class LocatorService : ILocatorService
         IProviderSettingStorage providerSettingStorage,
         IOptions<QuoteTimeoutOptions> timeoutOptions,
         INotificationService notificationService,
-        IAutoDisableProvidersService autoDisableProvidersService)
+        IAutoDisableProvidersService autoDisableProvidersService
+    )
     {
         _quoteStorage = quoteStorage;
         _eventSender = eventSender;
@@ -63,16 +65,17 @@ public class LocatorService : ILocatorService
         }
     }
 
-    private void InternalProcessQuoteRequest(QuoteRequest quoteRequest,
-        DateTime timeRequestArrived)
+    private void InternalProcessQuoteRequest(QuoteRequest quoteRequest, DateTime timeRequestArrived)
     {
         var quote = Quote.FromQuoteRequest(quoteRequest);
         quote.CreatedAt = timeRequestArrived;
 
         if (!_quoteStorage.TryAddQuoteWithLock(quote))
         {
-            SendDuplicateQuoteResponse(quoteRequest,
-                $"quote request id is not unique {quoteRequest.Id}");
+            SendDuplicateQuoteResponse(
+                quoteRequest,
+                $"quote request id is not unique {quoteRequest.Id}"
+            );
             return;
         }
 
@@ -91,7 +94,6 @@ public class LocatorService : ILocatorService
             }
 
             var request = quote.ToProviderQuoteRequest();
-            request.Id = GetNewId();
 
             request.ValidTill = DateTime.UtcNow.Add(_timeoutOptions.Value.MaxProviderQuoteWait / 2);
 
@@ -112,18 +114,21 @@ public class LocatorService : ILocatorService
 
     #region Process Quote Before it is approved
 
-    public void ProcessProviderQuoteResponse(ProviderQuoteResponse providerQuoteResponse, string providerId)
+    public void ProcessProviderQuoteResponse(
+        ProviderQuoteResponse providerQuoteResponse,
+        string providerId
+    )
     {
-        var key = new Quote.QuoteKey(providerQuoteResponse.QuoteId,
-            providerQuoteResponse.AccountId);
+        var key = new Quote.QuoteKey(
+            providerQuoteResponse.QuoteId,
+            providerQuoteResponse.AccountId
+        );
         try
         {
-
             if (providerQuoteResponse.Status != ProviderQuoteResponse.StatusEnum.Ready)
             {
                 return;
             }
-
 
             var quote = _quoteStorage.GetQuoteWithLock(key);
             if (quote == null)
@@ -137,7 +142,11 @@ public class LocatorService : ILocatorService
             }
 
             quote.ProviderQuoteResponses[providerId] = providerQuoteResponse;
-            if (quote.ProviderQuoteRequests.Keys.All(key => quote.ProviderQuoteResponses.ContainsKey(key)))
+            if (
+                quote.ProviderQuoteRequests.Keys.All(key =>
+                    quote.ProviderQuoteResponses.ContainsKey(key)
+                )
+            )
             {
                 ProcessQuote(quote);
             }
@@ -154,9 +163,10 @@ public class LocatorService : ILocatorService
         {
             var priceCalculationResult = _priceCalculationService.CalculateAllProviderPrices(quote);
 
-
             quote.PriceCalculationResult = priceCalculationResult;
-            var maxPriceToAccept = quote.AutoApprove ? quote.MaxPriceForAutoApprove : (decimal?)null;
+            var maxPriceToAccept = quote.AutoApprove
+                ? quote.MaxPriceForAutoApprove
+                : (decimal?)null;
 
             PopulateProviderBuyOrderRequestsAndPrice(quote, maxPriceToAccept);
 
@@ -169,12 +179,16 @@ public class LocatorService : ILocatorService
                 if (quote.QuantityToBuy > 0)
                 {
                     quote.Status = Quote.QuoteStatus.WaitingAcceptance;
-                    _eventSender.SendQuoteResponse(quote.ToQuoteResponse(QuoteResponseStatusEnum.WaitingAcceptance));
+                    _eventSender.SendQuoteResponse(
+                        quote.ToQuoteResponse(QuoteResponseStatusEnum.WaitingAcceptance)
+                    );
                 }
                 else
                 {
                     quote.Status = Quote.QuoteStatus.NoInventory;
-                    _eventSender.SendQuoteResponse(quote.ToQuoteResponse(QuoteResponseStatusEnum.NoInventory));
+                    _eventSender.SendQuoteResponse(
+                        quote.ToQuoteResponse(QuoteResponseStatusEnum.NoInventory)
+                    );
                 }
             }
         }
@@ -184,16 +198,21 @@ public class LocatorService : ILocatorService
         }
     }
 
-
     private void ProcessQuoteWithAutoApprove(Quote quote)
     {
-        if (quote.MaxPriceForAutoApprove >= quote.Price
-            && (quote.AllowPartial
-                ? quote.QuantityToBuy > 0
-                : quote.QuantityToBuy == quote.RequestedQuantity))
+        if (
+            quote.MaxPriceForAutoApprove >= quote.Price
+            && (
+                quote.AllowPartial
+                    ? quote.QuantityToBuy > 0
+                    : quote.QuantityToBuy == quote.RequestedQuantity
+            )
+        )
         {
             quote.Status = Quote.QuoteStatus.WaitingAcceptance;
-            _eventSender.SendQuoteResponse(quote.ToQuoteResponse(QuoteResponseStatusEnum.AutoAccepted));
+            _eventSender.SendQuoteResponse(
+                quote.ToQuoteResponse(QuoteResponseStatusEnum.AutoAccepted)
+            );
             AcceptLocateInternal(quote, null);
         }
         else
@@ -201,12 +220,16 @@ public class LocatorService : ILocatorService
             if (quote.PriceCalculationResult?.Offers.Any(x => x.Quantity > 0) == true)
             {
                 quote.Status = Quote.QuoteStatus.Cancelled;
-                _eventSender.SendQuoteResponse(quote.ToQuoteResponse(QuoteResponseStatusEnum.AutoRejected));
+                _eventSender.SendQuoteResponse(
+                    quote.ToQuoteResponse(QuoteResponseStatusEnum.AutoRejected)
+                );
             }
             else
             {
                 quote.Status = Quote.QuoteStatus.NoInventory;
-                _eventSender.SendQuoteResponse(quote.ToQuoteResponse(QuoteResponseStatusEnum.NoInventory));
+                _eventSender.SendQuoteResponse(
+                    quote.ToQuoteResponse(QuoteResponseStatusEnum.NoInventory)
+                );
             }
         }
     }
@@ -217,10 +240,13 @@ public class LocatorService : ILocatorService
 
     private bool CancelQuoteInternal(Quote quote, bool isTimeout)
     {
-        if (quote.Status != Quote.QuoteStatus.WaitingAcceptance &&
-            quote.Status != Quote.QuoteStatus.WaitingProvidersQuotes)
+        if (
+            quote.Status != Quote.QuoteStatus.WaitingAcceptance
+            && quote.Status != Quote.QuoteStatus.WaitingProvidersQuotes
+        )
         {
-            var message = $"Attempt to cancel quote {quote.Id}, which is in the wrong state {quote.Status}";
+            var message =
+                $"Attempt to cancel quote {quote.Id}, which is in the wrong state {quote.Status}";
             SendQuoteResponse(quote, QuoteResponseStatusEnum.RejectedBadRequest, message);
             return false;
         }
@@ -240,7 +266,11 @@ public class LocatorService : ILocatorService
             if (quote == null)
             {
                 var message = $"Attempt to Accept not existing or expired quote {quoteRequest.Id}";
-                SendQuoteResponse(quoteRequest, QuoteResponseStatusEnum.RejectedBadRequest, message);
+                SendQuoteResponse(
+                    quoteRequest,
+                    QuoteResponseStatusEnum.RejectedBadRequest,
+                    message
+                );
                 return;
             }
 
@@ -261,7 +291,11 @@ public class LocatorService : ILocatorService
             if (quote == null)
             {
                 var message = $"Attempt to cancel not existing or expired quote {quoteRequest.Id}";
-                SendQuoteResponse(quoteRequest, QuoteResponseStatusEnum.RejectedBadRequest, message);
+                SendQuoteResponse(
+                    quoteRequest,
+                    QuoteResponseStatusEnum.RejectedBadRequest,
+                    message
+                );
                 return;
             }
 
@@ -277,7 +311,8 @@ public class LocatorService : ILocatorService
     {
         if (quote.Status != Quote.QuoteStatus.WaitingAcceptance)
         {
-            var message = $"Attempt to Accept  quote {quote.Id}, which is in the wrong state {quote.Status}";
+            var message =
+                $"Attempt to Accept  quote {quote.Id}, which is in the wrong state {quote.Status}";
             SendQuoteResponse(quote, QuoteResponseStatusEnum.RejectedBadRequest, message);
             return true;
         }
@@ -288,20 +323,37 @@ public class LocatorService : ILocatorService
             PopulateProviderBuyOrderRequestsAndPrice(quote, acceptQuoteRequest.MaxPriceToAccept);
         }
 
-        foreach ((_, (string provider, ProviderBuyRequest orderRequest)) in quote.ProviderBuyOrderRequests)
+        foreach (
+            (
+                _,
+                (string provider, ProviderBuyRequest orderRequest)
+            ) in quote.ProviderBuyOrderRequests
+        )
         {
             var providerSetting = _providerSettingStorage.Get(provider);
             if (providerSetting == null || providerSetting.BuyRequestTopic == null)
             {
-                quote.ProviderBuyOrderResponses.Add(orderRequest.Id,
-                    (provider, new ProviderBuyResponse()
-                    {
-                        Status = ProviderBuyResponse.StatusEnum.Failed
-                    }));
+                quote.ProviderBuyOrderResponses.Add(
+                    orderRequest.Id,
+                    (
+                        provider,
+                        new ProviderBuyResponse()
+                        {
+                            AccountId = quote.AccountId,
+                            BoughtAssets = [],
+                            Id = orderRequest.Id,
+                            QuoteId = quote.Id,
+                            Symbol = quote.Symbol,
+                            Status = ProviderBuyResponse.StatusEnum.Failed,
+                        }
+                    )
+                );
                 continue;
             }
 
-            orderRequest.ValidTill = DateTime.UtcNow.Add(_timeoutOptions.Value.MaxProviderBuyWait / 2);
+            orderRequest.ValidTill = DateTime.UtcNow.Add(
+                _timeoutOptions.Value.MaxProviderBuyWait / 2
+            );
 
             _eventSender.SendProviderBuyOrderRequest(providerSetting.BuyRequestTopic, orderRequest);
         }
@@ -311,12 +363,17 @@ public class LocatorService : ILocatorService
 
     private void PopulateProviderBuyOrderRequestsAndPrice(Quote quote, decimal? maxPriceToAccept)
     {
-        var priceCalculationResult = quote.PriceCalculationResult ?? throw new InvalidOperationException(
-            $"{nameof(quote.PriceCalculationResult)} is null, but {nameof(PopulateProviderBuyOrderRequestsAndPrice)} is called");
+        var priceCalculationResult =
+            quote.PriceCalculationResult
+            ?? throw new InvalidOperationException(
+                $"{nameof(quote.PriceCalculationResult)} is null, but {nameof(PopulateProviderBuyOrderRequestsAndPrice)} is called"
+            );
 
-        var result =
-            _priceCalculationService.PopulateProviderBuyOrderRequestsAndPrice(priceCalculationResult, false,
-                maxPriceToAccept);
+        var result = _priceCalculationService.PopulateProviderBuyOrderRequestsAndPrice(
+            priceCalculationResult,
+            false,
+            maxPriceToAccept
+        );
 
         quote.Price = result.Price;
         quote.QuantityToBuy = result.QuantityToBuy;
@@ -332,11 +389,15 @@ public class LocatorService : ILocatorService
 
     #region Process Accepted Quote
 
-    public void ProcessProviderBuyOrderResponse(ProviderBuyResponse providerBuyOrderResponse,
-        string providerId)
+    public void ProcessProviderBuyOrderResponse(
+        ProviderBuyResponse providerBuyOrderResponse,
+        string providerId
+    )
     {
-        var key = new Quote.QuoteKey(providerBuyOrderResponse.QuoteId,
-            providerBuyOrderResponse.AccountId);
+        var key = new Quote.QuoteKey(
+            providerBuyOrderResponse.QuoteId,
+            providerBuyOrderResponse.AccountId
+        );
 
         try
         {
@@ -344,27 +405,39 @@ public class LocatorService : ILocatorService
 
             if (quote is not { Status: Quote.QuoteStatus.Accepted })
             {
-                var warnMessage = quote == null
-                    ? $"Attempt to AddProviderBuyOrderResponse to not existing or expired quote {key}."
-                    : $"Attempt to AddProviderBuyOrderResponse to quote {key}, which is in the wrong state {quote.Status}";
+                var warnMessage =
+                    quote == null
+                        ? $"Attempt to AddProviderBuyOrderResponse to not existing or expired quote {key}."
+                        : $"Attempt to AddProviderBuyOrderResponse to quote {key}, which is in the wrong state {quote.Status}";
 
-                if (providerBuyOrderResponse.Status is ProviderBuyResponse.StatusEnum.Fulfilled
-                    or ProviderBuyResponse.StatusEnum.Partial)
+                if (
+                    providerBuyOrderResponse.Status
+                    is ProviderBuyResponse.StatusEnum.Fulfilled
+                        or ProviderBuyResponse.StatusEnum.Partial
+                )
                 {
-
-                    AddProviderBuyOrderResponseToInternalInventory(providerBuyOrderResponse, providerId,
-                        CreatingType.Overbuy, true);
-
+                    AddProviderBuyOrderResponseToInternalInventory(
+                        providerBuyOrderResponse,
+                        providerId,
+                        CreatingType.Overbuy,
+                        true
+                    );
                 }
 
                 return;
             }
 
-            quote.ProviderBuyOrderResponses.Add(providerBuyOrderResponse.Id,
-                (providerId, providerBuyOrderResponse));
+            quote.ProviderBuyOrderResponses.Add(
+                providerBuyOrderResponse.Id,
+                (providerId, providerBuyOrderResponse)
+            );
 
-            if (quote.ProviderBuyOrderRequests.Keys.All(x => quote.ProviderBuyOrderResponses.ContainsKey(x))
-                || quote.ActualQuantity >= quote.QuantityToBuy)
+            if (
+                quote.ProviderBuyOrderRequests.Keys.All(x =>
+                    quote.ProviderBuyOrderResponses.ContainsKey(x)
+                )
+                || quote.ActualQuantity >= quote.QuantityToBuy
+            )
             {
                 FinalizeTheQuote(quote);
             }
@@ -386,15 +459,17 @@ public class LocatorService : ILocatorService
             }
         }
 
-        var status = quote.ActualQuantity == quote.RequestedQuantity
-            ? QuoteResponseStatusEnum.Filled
-            : quote.ActualQuantity > 0 && (quote.AllowPartial || quote.QuantityToBuy == quote.ActualQuantity)
+        var status =
+            quote.ActualQuantity == quote.RequestedQuantity ? QuoteResponseStatusEnum.Filled
+            : quote.ActualQuantity > 0
+            && (quote.AllowPartial || quote.QuantityToBuy == quote.ActualQuantity)
                 ? QuoteResponseStatusEnum.Partial
-                : QuoteResponseStatusEnum.NoInventory;
+            : QuoteResponseStatusEnum.NoInventory;
 
-        quote.Status = status == QuoteResponseStatusEnum.NoInventory
-            ? Quote.QuoteStatus.NoInventory
-            : Quote.QuoteStatus.Filled;
+        quote.Status =
+            status == QuoteResponseStatusEnum.NoInventory
+                ? Quote.QuoteStatus.NoInventory
+                : Quote.QuoteStatus.Filled;
 
         AddInventory(quote);
 
@@ -405,39 +480,46 @@ public class LocatorService : ILocatorService
             Id = quote.Id,
             Price = quote.Price,
             ReqQty = quote.RequestedQuantity,
-            FillQty = quote.Status == Quote.QuoteStatus.NoInventory
-                ? 0
-                : Math.Min(quote.ActualQuantity,
-                    quote.RequestedQuantity), //We bought more than required, user shouldn't know
+            FillQty =
+                quote.Status == Quote.QuoteStatus.NoInventory
+                    ? 0
+                    : Math.Min(quote.ActualQuantity, quote.RequestedQuantity), //We bought more than required, user shouldn't know
             Status = status,
             Symbol = quote.Symbol,
             AccountId = quote.AccountId,
             // TODO_Review: I wonder whether this can be improved
             // todo: extract sources calculation logic
-            Sources = quote.Status == Quote.QuoteStatus.NoInventory
-                ? Array.Empty<QuoteSourceInfo>()
-                : quote.ProviderBuyOrderResponses.Values
-                    .Where(x => x.response.Status
-                        is ProviderBuyResponse.StatusEnum.Fulfilled
-                        or ProviderBuyResponse.StatusEnum.Partial)
-                    .SelectMany(x => x.response.BoughtAssets.Select(priceInfo => (x.provider, priceInfo)))
-                    .Select(x =>
-                    {
-                        var provider = x.provider;
-                        var priceInfo = x.priceInfo;
-
-                        decimal discountedPrice =
-                             _priceCalculationService.GetDiscountedPrice(priceInfo);
-
-                        return new QuoteSourceInfo
+            Sources =
+                quote.Status == Quote.QuoteStatus.NoInventory
+                    ? Array.Empty<QuoteSourceInfo>()
+                    : quote
+                        .ProviderBuyOrderResponses.Values.Where(x =>
+                            x.response.Status
+                                is ProviderBuyResponse.StatusEnum.Fulfilled
+                                    or ProviderBuyResponse.StatusEnum.Partial
+                        )
+                        .SelectMany(x =>
+                            x.response.BoughtAssets.Select(priceInfo => (x.provider, priceInfo))
+                        )
+                        .Select(x =>
                         {
-                            Provider = provider,
-                            Source = priceInfo.Source!,
-                            Price = priceInfo.Price,
-                            Qty = priceInfo.Quantity,
-                            DiscountedPrice = discountedPrice,
-                        };
-                    }).ToArray()
+                            var provider = x.provider;
+                            var priceInfo = x.priceInfo;
+
+                            decimal discountedPrice = _priceCalculationService.GetDiscountedPrice(
+                                priceInfo
+                            );
+
+                            return new QuoteSourceInfo
+                            {
+                                Provider = provider,
+                                Source = priceInfo.Source!,
+                                Price = priceInfo.Price,
+                                Qty = priceInfo.Quantity,
+                                DiscountedPrice = discountedPrice,
+                            };
+                        })
+                        .ToArray(),
         };
 
         SendNotificationIfNegativeProfit(quoteResponse);
@@ -456,10 +538,21 @@ public class LocatorService : ILocatorService
 
             if (providerSettings?.BuyRequestTopic == null)
             {
-                quote.ProviderBuyOrderResponses.Add(request.Id, (destination, new ProviderBuyResponse()
-                {
-                    Status = ProviderBuyResponse.StatusEnum.Failed
-                }));
+                quote.ProviderBuyOrderResponses.Add(
+                    request.Id,
+                    (
+                        destination,
+                        new ProviderBuyResponse()
+                        {
+                            Id = request.Id,
+                            AccountId = quote.AccountId,
+                            BoughtAssets = [],
+                            QuoteId = quote.Id,
+                            Symbol = quote.Symbol,
+                            Status = ProviderBuyResponse.StatusEnum.Failed,
+                        }
+                    )
+                );
                 continue;
             }
 
@@ -473,25 +566,33 @@ public class LocatorService : ILocatorService
 
     private Dictionary<string, ProviderBuyRequest> FindProvidersWithAdditionalQuantity(Quote quote)
     {
-        //TODO: shouldn't we store actual copy of all inventories?? 
+        //TODO: shouldn't we store actual copy of all inventories??
         var requiredQuantity = quote.QuantityToBuy - quote.ActualQuantity;
         var discountedPrices = quote.PriceCalculationResult?.Offers ?? Array.Empty<ProviderOffer>();
 
         var newBuyOrderRequests = new Dictionary<string, ProviderBuyRequest>();
-        foreach (var discountedPrice in discountedPrices
-                     .Where(x => x.DiscountedPrice <= quote.Price)
-                     .OrderBy(x => x.DiscountedPrice))
+        foreach (
+            var discountedPrice in discountedPrices
+                .Where(x => x.DiscountedPrice <= quote.Price)
+                .OrderBy(x => x.DiscountedPrice)
+        )
         {
             if (requiredQuantity <= 0)
             {
                 break;
             }
 
-            if (quote.ProviderBuyOrderRequests.Keys
-                .Where(x => quote.ProviderBuyOrderRequests[x].provider == discountedPrice.Provider)
-                .Any(x => !quote.ProviderBuyOrderResponses.ContainsKey(x)
-                          || quote.ProviderBuyOrderResponses[x].response.Status !=
-                          ProviderBuyResponse.StatusEnum.Fulfilled))
+            if (
+                quote
+                    .ProviderBuyOrderRequests.Keys.Where(x =>
+                        quote.ProviderBuyOrderRequests[x].provider == discountedPrice.Provider
+                    )
+                    .Any(x =>
+                        !quote.ProviderBuyOrderResponses.ContainsKey(x)
+                        || quote.ProviderBuyOrderResponses[x].response.Status
+                            != ProviderBuyResponse.StatusEnum.Fulfilled
+                    )
+            )
             {
                 //it means we have a request to current destination that wasn't responded or not fully covered
                 continue;
@@ -507,16 +608,17 @@ public class LocatorService : ILocatorService
             if (!newBuyOrderRequests.TryGetValue(discountedPrice.Provider, out var request))
             {
                 request = quote.ToProviderBuyRequest();
-                request.Id = GetNewId();
                 newBuyOrderRequests.Add(discountedPrice.Provider, request);
             }
 
-            request.RequestedAssets.Add(new PriceInfo()
-            {
-                Price = discountedPrice.Price,
-                Quantity = q,
-                Source = discountedPrice.Source,
-            });
+            request.RequestedAssets.Add(
+                new PriceInfo()
+                {
+                    Price = discountedPrice.Price,
+                    Quantity = q,
+                    Source = discountedPrice.Source,
+                }
+            );
             requiredQuantity -= q;
         }
 
@@ -527,18 +629,29 @@ public class LocatorService : ILocatorService
     {
         var remainingQuantity = quote.QuantityToBuy;
         var additionalQuantity = 0;
-        foreach (var (destinationId, destinationBuyOrderResponse) in quote.ProviderBuyOrderResponses.Values)
+        foreach (
+            var (destinationId, destinationBuyOrderResponse) in quote
+                .ProviderBuyOrderResponses
+                .Values
+        )
         {
-            if (destinationBuyOrderResponse.Status
+            if (
+                destinationBuyOrderResponse.Status
                 is ProviderBuyResponse.StatusEnum.Fulfilled
-                or ProviderBuyResponse.StatusEnum.Partial)
+                    or ProviderBuyResponse.StatusEnum.Partial
+            )
             {
                 foreach (var boughtItem in destinationBuyOrderResponse.BoughtAssets)
                 {
                     var discountedPrice = quote.PriceCalculationResult?.Offers.FirstOrDefault(x =>
                         x.Source == boughtItem.Source
                         && x.Price == boughtItem.Price
-                        && String.Equals(x.Provider, destinationId, StringComparison.OrdinalIgnoreCase));
+                        && String.Equals(
+                            x.Provider,
+                            destinationId,
+                            StringComparison.OrdinalIgnoreCase
+                        )
+                    );
 
                     var q = Math.Min(remainingQuantity, boughtItem.Quantity);
                     additionalQuantity += boughtItem.Quantity - q;
@@ -551,16 +664,19 @@ public class LocatorService : ILocatorService
                         quote.AccountId,
                         destinationBuyOrderResponse.Symbol,
                         q,
-                         boughtItem.Price,
-                        (boughtItem.Source) ??
-                        destinationId);
+                        boughtItem.Price,
+                        (boughtItem.Source) ?? destinationId
+                    );
                 }
             }
         }
     }
 
-    private void AddFakeQuoteForInventoryAddedToInternal(AddInternalInventoryItemRequest request,
-        string destinationId, PriceInfo item)
+    private void AddFakeQuoteForInventoryAddedToInternal(
+        AddInternalInventoryItemRequest request,
+        string destinationId,
+        PriceInfo item
+    )
     {
         var quoteResponse = new QuoteResponse()
         {
@@ -580,14 +696,18 @@ public class LocatorService : ILocatorService
                     Qty = request.Quantity,
                     Source = request.Source,
                     DiscountedPrice = _priceCalculationService.GetDiscountedPrice(item),
-                }
-            }
+                },
+            },
         };
         _eventSender.SendQuoteResponse(quoteResponse);
     }
 
-    private void AddProviderBuyOrderResponseToInternalInventory(ProviderBuyResponse destinationBuyOrderResponse,
-        string provider, CreatingType addingType, bool createFakeQuote = false)
+    private void AddProviderBuyOrderResponseToInternalInventory(
+        ProviderBuyResponse destinationBuyOrderResponse,
+        string provider,
+        CreatingType addingType,
+        bool createFakeQuote = false
+    )
     {
         foreach (var item in destinationBuyOrderResponse.BoughtAssets)
         {
@@ -597,7 +717,7 @@ public class LocatorService : ILocatorService
                 Source = item.Source,
                 Price = item.Price,
                 Quantity = item.Quantity,
-                CreatingType = addingType
+                CreatingType = addingType,
             };
             _eventSender.SendAddInternalInventoryItemRequest(request);
 
@@ -610,19 +730,25 @@ public class LocatorService : ILocatorService
 
     private void SendNotificationIfNegativeProfit(QuoteResponse quoteResponse)
     {
-        if (quoteResponse.Status is QuoteResponseStatusEnum.Filled or QuoteResponseStatusEnum.Partial)
+        if (
+            quoteResponse.Status
+            is QuoteResponseStatusEnum.Filled
+                or QuoteResponseStatusEnum.Partial
+        )
         {
-            var locatorQuoteResponse = new LocatorQuoteResponse(quoteResponse);
+            var locatorQuoteResponse = LocatorQuoteResponse.From(quoteResponse);
 
             if (locatorQuoteResponse.DiscountedPrice > locatorQuoteResponse.Price)
             {
-                _notificationService.Add(new NotificationEvent(
-                    Type: NotificationType.Warning,
-                    Kind: LocatorErrorKind.NegativeProfitQuote.ToString(),
-                    GroupParameters: quoteResponse.Id,
-                    Time: DateTime.UtcNow,
-                    Message: $"Locates were sold with negative profit. QuoteId: {quoteResponse.Id}"
-                ));
+                _notificationService.Add(
+                    new NotificationEvent(
+                        Type: NotificationType.Warning,
+                        Kind: LocatorErrorKind.NegativeProfitQuote.ToString(),
+                        GroupParameters: quoteResponse.Id,
+                        Time: DateTime.UtcNow,
+                        Message: $"Locates were sold with negative profit. QuoteId: {quoteResponse.Id}"
+                    )
+                );
             }
         }
     }
@@ -649,7 +775,6 @@ public class LocatorService : ILocatorService
             return;
         }
 
-
         foreach (var q in quotes)
         {
             try
@@ -659,7 +784,6 @@ public class LocatorService : ILocatorService
                 {
                     continue;
                 }
-
 
                 _quoteStorage.DeleteQuote(quote);
             }
@@ -672,14 +796,15 @@ public class LocatorService : ILocatorService
 
     private void ProcessHangingAcceptQuote()
     {
-        var quotes = _quoteStorage.GetQuotes(Quote.QuoteStatus.WaitingAcceptance,
-            DateTime.UtcNow.Subtract(_timeoutOptions.Value.MaxQuoteAcceptWait));
+        var quotes = _quoteStorage.GetQuotes(
+            Quote.QuoteStatus.WaitingAcceptance,
+            DateTime.UtcNow.Subtract(_timeoutOptions.Value.MaxQuoteAcceptWait)
+        );
 
         if (quotes.Length == 0)
         {
             return;
         }
-
 
         foreach (var q in quotes)
         {
@@ -690,7 +815,6 @@ public class LocatorService : ILocatorService
                 {
                     continue;
                 }
-
 
                 CancelQuoteInternal(quote, isTimeout: true);
             }
@@ -703,14 +827,15 @@ public class LocatorService : ILocatorService
 
     private void ProcessHangingBuyResponseWaitingQuotes()
     {
-        var quotes = _quoteStorage.GetQuotes(Quote.QuoteStatus.Accepted,
-            DateTime.UtcNow.Subtract(_timeoutOptions.Value.MaxProviderBuyWait));
+        var quotes = _quoteStorage.GetQuotes(
+            Quote.QuoteStatus.Accepted,
+            DateTime.UtcNow.Subtract(_timeoutOptions.Value.MaxProviderBuyWait)
+        );
 
         if (quotes.Length == 0)
         {
             return;
         }
-
 
         foreach (var q in quotes)
         {
@@ -733,14 +858,15 @@ public class LocatorService : ILocatorService
 
     private void ProcessHangingQuoteResponseWaitingQuotes()
     {
-        var quotes = _quoteStorage.GetQuotes(Quote.QuoteStatus.WaitingProvidersQuotes,
-            DateTime.UtcNow.Subtract(_timeoutOptions.Value.MaxProviderQuoteWait));
+        var quotes = _quoteStorage.GetQuotes(
+            Quote.QuoteStatus.WaitingProvidersQuotes,
+            DateTime.UtcNow.Subtract(_timeoutOptions.Value.MaxProviderQuoteWait)
+        );
 
         if (quotes.Length == 0)
         {
             return;
         }
-
 
         foreach (var q in quotes)
         {
@@ -762,20 +888,23 @@ public class LocatorService : ILocatorService
         }
     }
 
-    #endregion 
+    #endregion
 
-    string GetNewId()
-    {
-        return Guid.NewGuid().ToString();
-    }
-
-    private void SendQuoteResponse(QuoteRequest quoteRequest, QuoteResponseStatusEnum status, string? message)
+    private void SendQuoteResponse(
+        QuoteRequest quoteRequest,
+        QuoteResponseStatusEnum status,
+        string? message
+    )
     {
         QuoteResponse quoteResponse = quoteRequest.ToQuoteResponse(status, message);
         _eventSender.SendQuoteResponse(quoteResponse);
     }
 
-    private void SendQuoteResponse(Quote quote, QuoteResponseStatusEnum status, string? errorMessage)
+    private void SendQuoteResponse(
+        Quote quote,
+        QuoteResponseStatusEnum status,
+        string? errorMessage
+    )
     {
         QuoteResponse quoteResponse = quote.ToQuoteResponse(status, errorMessage);
         _eventSender.SendQuoteResponse(quoteResponse);

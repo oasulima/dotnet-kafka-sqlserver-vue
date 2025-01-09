@@ -1,7 +1,7 @@
 ﻿using Confluent.Kafka;
-using Newtonsoft.Json;
+using Shared;
 
-namespace TradeZero.Locator.Emulator.Utility;
+namespace Locator.UserEmulator.Utility;
 
 public static class KafkaListenerUtils
 {
@@ -11,13 +11,17 @@ public static class KafkaListenerUtils
 
         if (string.IsNullOrWhiteSpace(rawMessage))
         {
-            throw new Exception($"An empty message was receive from {consumeResult.Topic} kafka topic");
+            throw new Exception(
+                $"An empty message was receive from {consumeResult.Topic} kafka topic"
+            );
         }
 
-        var result = JsonConvert.DeserializeObject<T>(rawMessage);
+        var result = Converter.Deserialize<T>(rawMessage);
         if (result == null)
         {
-            throw new Exception($"Message from {consumeResult.Topic} kafka topic couldn't be deserialized");
+            throw new Exception(
+                $"Message from {consumeResult.Topic} kafka topic couldn't be deserialized"
+            );
         }
 
         return result;

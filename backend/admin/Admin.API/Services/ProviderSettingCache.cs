@@ -31,8 +31,7 @@ public class ProviderSettingCache : IProviderSettingCache
     public IEnumerable<ProviderSetting> GetActiveExternalQuery()
     {
         return GetAllQuery()
-            .Where(x => x.Active
-                        && x.ProviderId is not Providers.SelfIds.InternalInventory);
+            .Where(x => x.Active && x.ProviderId is not Providers.SelfIds.InternalInventory);
     }
 
     public ProviderSetting? GetProviderSetting(string providerId)

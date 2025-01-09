@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using Shared;
 
-namespace TradeZero.Locator.Emulator;
+namespace Locator.UserEmulator;
 
 public static class SharedData
 {
@@ -18,15 +18,19 @@ public static class SharedData
     public static long TotalFailed => Interlocked.Read(ref _totalFailed);
 
     public static void IncrementQuotes() => Interlocked.Increment(ref _totalQuotes);
+
     public static void IncrementAccepts() => Interlocked.Increment(ref _totalAccepts);
+
     public static void IncrementCancels() => Interlocked.Increment(ref _totalCancels);
+
     public static void IncrementIgnores() => Interlocked.Increment(ref _totalIgnores);
+
     public static void IncrementFailed() => Interlocked.Increment(ref _totalFailed);
 
     private static readonly ConcurrentBag<LogRecord> log = new();
 
-    public static readonly ConcurrentDictionary<string, TaskCompletionSource<QuoteResponse>>
-        Cache = new();
+    public static readonly ConcurrentDictionary<string, TaskCompletionSource<QuoteResponse>> Cache =
+        new();
 
     public static void Log(string str, bool toConsole = false)
     {
@@ -43,8 +47,10 @@ public static class SharedData
     public static void SaveLogToFile()
     {
         Directory.CreateDirectory("logs");
-        File.WriteAllLines(@$"logs/useremulator-{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.txt",
-            log.OrderBy(x => x.date).Select(x => x.message));
+        File.WriteAllLines(
+            @$"logs/useremulator-{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.txt",
+            log.OrderBy(x => x.date).Select(x => x.message)
+        );
     }
 
     record LogRecord(DateTime date, string message);

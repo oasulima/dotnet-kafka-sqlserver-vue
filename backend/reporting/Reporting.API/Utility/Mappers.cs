@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Newtonsoft.Json;
-using Reporting.API.Data.Models.DbModels;
+﻿using Reporting.API.Data.Models.DbModels;
 using Reporting.API.Data.Models.DbParams;
 using Shared;
 using Shared.Quote;
@@ -12,9 +8,10 @@ using Shared.Reporting.Requests;
 namespace Reporting.API.Utility;
 
 public static class Mappers
-{ 
-
-    public static GetLocatesReportDataDbParams ToLocatesReportDataDbParams(this LocatesReportDataRequest request)
+{
+    public static GetLocatesReportDataDbParams ToLocatesReportDataDbParams(
+        this LocatesReportDataRequest request
+    )
     {
         return new GetLocatesReportDataDbParams
         {
@@ -26,13 +23,12 @@ public static class Mappers
             Symbol = request.Symbol,
             Status = (byte?)request.Status,
             AccountId = request.AccountId,
-            ProviderId = request.ProviderId
+            ProviderId = request.ProviderId,
         };
     }
 
     public static LocatesReportData ToLocatesReportData(this LocatesReportDataDb dataDb)
     {
-        Console.WriteLine($"ToLocatesReportData: {dataDb}");
         return new LocatesReportData
         {
             Id = dataDb.Id,
@@ -54,9 +50,10 @@ public static class Mappers
         };
     }
 
-    public static LocatorQuoteResponseDb ToLocatorQuoteResponseDb(this LocatorQuoteResponse quoteResponse)
+    public static LocatorQuoteResponseDb ToLocatorQuoteResponseDb(
+        this LocatorQuoteResponse quoteResponse
+    )
     {
-        Console.WriteLine($"ToLocatorQuoteResponseDb: {quoteResponse}");
         return new LocatorQuoteResponseDb
         {
             Id = quoteResponse.Id,
@@ -70,7 +67,7 @@ public static class Mappers
             Price = quoteResponse.Price ?? 0,
             DiscountedPrice = quoteResponse.DiscountedPrice ?? 0,
             Source = quoteResponse.Source,
-            Sources = quoteResponse.Sources.ToQuoteSourceInfosDb()
+            Sources = quoteResponse.Sources.ToQuoteSourceInfosDb(),
         };
     }
 
@@ -82,13 +79,14 @@ public static class Mappers
             Source = sourceInfo.Source,
             Price = sourceInfo.Price,
             Qty = sourceInfo.Qty,
-            DiscountedPrice = sourceInfo.DiscountedPrice
+            DiscountedPrice = sourceInfo.DiscountedPrice,
         };
     }
 
-    public static LocatorQuoteResponse ToLocatorQuoteResponse(this LocatorQuoteResponseDb quoteResponseDb)
+    public static LocatorQuoteResponse ToLocatorQuoteResponse(
+        this LocatorQuoteResponseDb quoteResponseDb
+    )
     {
-        Console.WriteLine($"ToLocatorQuoteResponse: {quoteResponseDb}");
         return new LocatorQuoteResponse
         {
             Id = quoteResponseDb.Id,
@@ -102,34 +100,39 @@ public static class Mappers
             Price = quoteResponseDb.Price,
             DiscountedPrice = quoteResponseDb.DiscountedPrice,
             Source = quoteResponseDb.Source,
-            Sources = quoteResponseDb.Sources.ToQuoteSourceInfos()
+            Sources = quoteResponseDb.Sources.ToQuoteSourceInfos(),
         };
     }
 
     public static QuoteSourceInfo ToQuoteSourceInfo(this QuoteSourceInfoDb sourceInfoDb)
     {
-        Console.WriteLine($"ToQuoteSourceInfo: {sourceInfoDb}");
         return new QuoteSourceInfo
         {
             Provider = sourceInfoDb.Provider,
             Source = sourceInfoDb.Source,
             Price = sourceInfoDb.Price,
             Qty = sourceInfoDb.Qty,
-            DiscountedPrice = sourceInfoDb.DiscountedPrice
+            DiscountedPrice = sourceInfoDb.DiscountedPrice,
         };
     }
 
-    public static QuoteSourceInfoDb[] ToQuoteSourceInfosDb(this IEnumerable<QuoteSourceInfo> sourceInfos)
+    public static QuoteSourceInfoDb[] ToQuoteSourceInfosDb(
+        this IEnumerable<QuoteSourceInfo> sourceInfos
+    )
     {
         return sourceInfos.Select(ToQuoteSourceInfoDb).ToArray();
     }
 
-    public static QuoteSourceInfo[] ToQuoteSourceInfos(this IEnumerable<QuoteSourceInfoDb> sourceInfosDb)
+    public static QuoteSourceInfo[] ToQuoteSourceInfos(
+        this IEnumerable<QuoteSourceInfoDb> sourceInfosDb
+    )
     {
         return sourceInfosDb.Select(ToQuoteSourceInfo).ToArray();
     }
 
-    public static LocatesReportData[] ToLocatesReportData(this IEnumerable<LocatesReportDataDb> items)
+    public static LocatesReportData[] ToLocatesReportData(
+        this IEnumerable<LocatesReportDataDb> items
+    )
     {
         return items.Select(x => x.ToLocatesReportData()).ToArray();
     }
@@ -142,14 +145,14 @@ public static class Mappers
             Price = item.Price,
             Quantity = item.Quantity,
             Source = item.Source,
-            Status = item.Status.ToString(),
+            Status = item.Status,
             Symbol = item.Symbol,
             Tag = item.Tag,
             CoveredInvItemId = item.CoveredInvItemId,
             Version = item.Version,
             CreatingType = item.CreatingType,
             CreatedAt = item.CreatedAt,
-            SoldQuantity = item.SoldQuantity
+            SoldQuantity = item.SoldQuantity,
         };
     }
 
@@ -161,14 +164,14 @@ public static class Mappers
             Price = dbItem.Price,
             Quantity = dbItem.Quantity,
             Source = dbItem.Source,
-            Status = Enum.Parse<InternalInventoryItem.State>(dbItem.Status),
+            Status = dbItem.Status,
             Symbol = dbItem.Symbol,
             Tag = dbItem.Tag,
             CoveredInvItemId = dbItem.CoveredInvItemId,
             Version = dbItem.Version,
             CreatingType = dbItem.CreatingType,
             CreatedAt = dbItem.CreatedAt,
-            SoldQuantity = dbItem.SoldQuantity
+            SoldQuantity = dbItem.SoldQuantity,
         };
     }
 
@@ -184,11 +187,12 @@ public static class Mappers
             AllowPartial = quoteRequest.AllowPartial,
             AutoApprove = quoteRequest.AutoApprove,
             MaxPriceForAutoApprove = quoteRequest.MaxPriceForAutoApprove,
-            Time = quoteRequest.Time
+            Time = quoteRequest.Time,
         };
     }
 
-    private static T ThrowIfNull<T>(T? value) where T : class
+    private static T ThrowIfNull<T>(T? value)
+        where T : class
     {
         if (value == null)
         {
@@ -198,7 +202,8 @@ public static class Mappers
         return value;
     }
 
-    private static T ThrowIfNull<T>(T? value) where T : struct
+    private static T ThrowIfNull<T>(T? value)
+        where T : struct
     {
         if (value == null)
         {

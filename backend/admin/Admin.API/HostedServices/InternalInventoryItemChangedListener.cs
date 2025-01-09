@@ -1,7 +1,7 @@
-﻿using Confluent.Kafka;
-using Microsoft.Extensions.Options;
-using Admin.API.Options;
+﻿using Admin.API.Options;
 using Admin.API.Services.Interfaces;
+using Confluent.Kafka;
+using Microsoft.Extensions.Options;
 using Shared;
 
 namespace Admin.API.HostedServices;
@@ -12,10 +12,10 @@ public class InternalInventoryItemChangedListener : BackgroundService
     private readonly ConsumerConfig _consumerConfig;
     private readonly string _topic;
 
-
     public InternalInventoryItemChangedListener(
         INotificationsServiceBase adminUiHubMethods,
-        IOptions<KafkaOptions> kafkaOptions)
+        IOptions<KafkaOptions> kafkaOptions
+    )
     {
         _adminUiHubMethods = adminUiHubMethods;
 
@@ -23,7 +23,7 @@ public class InternalInventoryItemChangedListener : BackgroundService
         {
             BootstrapServers = kafkaOptions.Value.Servers,
             GroupId = kafkaOptions.Value.GroupId,
-            AutoOffsetReset = AutoOffsetReset.Latest
+            AutoOffsetReset = AutoOffsetReset.Latest,
         };
         _topic = kafkaOptions.Value.InternalInventoryItemChangeTopic;
     }
@@ -32,7 +32,9 @@ public class InternalInventoryItemChangedListener : BackgroundService
     {
         return Task.Run(async () =>
         {
-            using var consumer = new ConsumerBuilder<string, InternalInventoryItem>(_consumerConfig).SetValueDeserializer(new KafkaDeserializer<InternalInventoryItem>()).Build();
+            using var consumer = new ConsumerBuilder<string, InternalInventoryItem>(_consumerConfig)
+                .SetValueDeserializer(new KafkaDeserializer<InternalInventoryItem>())
+                .Build();
             consumer.Subscribe(_topic);
             try
             {

@@ -3,10 +3,9 @@
         <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="linq2db" Version="6.0.0-preview.1" />
-        <PackageReference Include="linq2db.AspNet" Version="5.4.1" />
         <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.2" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />

@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Reflection;
+﻿using System.Reflection;
 using DbUp;
 
 static string GetRequiredConfigString(string parameterName)
@@ -15,31 +14,17 @@ static string GetRequiredConfigString(string parameterName)
     return configString;
 }
 
-var connectionString =
-    args.FirstOrDefault()
-    ?? Environment.GetEnvironmentVariable("CONNECTION_STRING");
+var connectionString = args.FirstOrDefault() ?? GetRequiredConfigString("CONNECTION_STRING");
 
-var variables = new Dictionary<string, string>();
-foreach (DictionaryEntry e in Environment.GetEnvironmentVariables())
-{
-    variables.Add(e.Key.ToString(), e.Value.ToString());
-}
+EnsureDatabase.For.SqlDatabase(connectionString);
 
-var ensureDbCreated = Environment.GetEnvironmentVariable("ENSURE_DB_CREATED");
-if (ensureDbCreated != null && bool.TryParse(ensureDbCreated, out bool flag) && flag)
-{
-    EnsureDatabase.For.SqlDatabase(connectionString);
-}
-
-var upgrader =
-    DeployChanges.To
-        .SqlDatabase(connectionString, "dbo")
-        .WithScriptsEmbeddedInAssembly(Assembly.GetExecutingAssembly())
-        .LogToConsole()
-        .WithVariables(variables)
-        .WithTransactionPerScript()
-        .WithExecutionTimeout(TimeSpan.FromMinutes(30))
-        .Build();
+var upgrader = DeployChanges
+    .To.SqlDatabase(connectionString, "dbo")
+    .WithScriptsEmbeddedInAssembly(Assembly.GetExecutingAssembly())
+    .LogToConsole()
+    .WithTransactionPerScript()
+    .WithExecutionTimeout(TimeSpan.FromMinutes(30))
+    .Build();
 
 var result = upgrader.PerformUpgrade();
 

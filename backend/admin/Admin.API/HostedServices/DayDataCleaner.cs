@@ -1,5 +1,5 @@
-using Polly;
 using Admin.API.Services.Interfaces;
+using Polly;
 
 namespace Admin.API.HostedServices;
 
@@ -10,11 +10,13 @@ public class DayDataCleaner : IHostedService, IDisposable
 
     private Timer? _timer;
 
-    private readonly Policy _retryPolicy = Policy.Handle<Exception>()
-        .WaitAndRetry(retryCount: 1000, sleepDurationProvider: _ => TimeSpan.FromSeconds(3),
-            onRetry: (exception, sleepDuration, attemptNumber, context) =>
-            {
-            });
+    private readonly Policy _retryPolicy = Policy
+        .Handle<Exception>()
+        .WaitAndRetry(
+            retryCount: 1000,
+            sleepDurationProvider: _ => TimeSpan.FromSeconds(3),
+            onRetry: (exception, sleepDuration, attemptNumber, context) => { }
+        );
 
     public DayDataCleaner(ITimeService timeService, IMessageHandler messageHandler)
     {
@@ -61,7 +63,6 @@ public class DayDataCleaner : IHostedService, IDisposable
             {
                 return;
             }
-
         }
         catch (Exception ex)
         {
@@ -72,7 +73,6 @@ public class DayDataCleaner : IHostedService, IDisposable
 
     public Task StopAsync(CancellationToken stoppingToken)
     {
-
         _timer?.Change(Timeout.Infinite, Timeout.Infinite);
 
         return Task.CompletedTask;

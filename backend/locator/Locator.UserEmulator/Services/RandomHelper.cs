@@ -1,7 +1,6 @@
-﻿using TradeZero.Locator.Emulator.Options;
+﻿using Locator.UserEmulator.Options;
 
-namespace TradeZero.Locator.Emulator.Services;
-
+namespace Locator.UserEmulator.Services;
 
 public class RandomHelper
 {
@@ -13,12 +12,7 @@ public class RandomHelper
     {
         this.emulatorOptions = emulatorOptions;
         symbols = GenerateSymbols(emulatorOptions.NumberOfSymbols);
-        sources =
-        [
-            "UES1",
-            "UES2",
-            "UES3"
-        ];
+        sources = ["UES1", "UES2", "UES3"];
     }
 
     private static string[] GenerateSymbols(int count)
@@ -58,7 +52,10 @@ public class RandomHelper
     public int GetRandomPercent100() => Random.Shared.Next(1, 101);
 
     public decimal GetRandomProviderDiscount() =>
-        Random.Shared.Next(emulatorOptions.MinProviderDiscount, emulatorOptions.MaxProviderDiscount + 1) / 100M;
+        Random.Shared.Next(
+            emulatorOptions.MinProviderDiscount,
+            emulatorOptions.MaxProviderDiscount + 1
+        ) / 100M;
 
     public bool ShouldAccept()
     {
@@ -72,17 +69,27 @@ public class RandomHelper
 
     public int GetDelayBeforeQuote()
     {
-        return Random.Shared.Next(emulatorOptions.MinQuoteRequestDelay, emulatorOptions.MaxQuoteRequestDelay);
+        return Random.Shared.Next(
+            emulatorOptions.MinQuoteRequestDelay,
+            emulatorOptions.MaxQuoteRequestDelay
+        );
     }
 
     public int GetRandomQuoteQuantity()
     {
-        return Random.Shared.Next(emulatorOptions.MinQuoteQuantity, emulatorOptions.MaxQuoteQuantity) / 100 * 100;
+        return Random.Shared.Next(
+                emulatorOptions.MinQuoteQuantity,
+                emulatorOptions.MaxQuoteQuantity
+            )
+            / 100
+            * 100;
     }
 
     public int GetRandomSellQuantity()
     {
-        return Random.Shared.Next(emulatorOptions.MinSellQuantity, emulatorOptions.MaxSellQuantity) / 100 * 100;
+        return Random.Shared.Next(emulatorOptions.MinSellQuantity, emulatorOptions.MaxSellQuantity)
+            / 100
+            * 100;
     }
 
     public bool GetRandomBool() => Random.Shared.Next(2) == 1;

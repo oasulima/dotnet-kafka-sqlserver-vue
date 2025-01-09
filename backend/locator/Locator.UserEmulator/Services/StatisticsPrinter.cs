@@ -1,4 +1,6 @@
-﻿namespace TradeZero.Locator.Emulator.Services;
+﻿using Locator.UserEmulator;
+
+namespace Locator.UserEmulator.Services;
 
 public class StatisticsPrinter
 {

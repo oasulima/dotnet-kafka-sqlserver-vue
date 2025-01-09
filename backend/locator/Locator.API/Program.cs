@@ -1,6 +1,9 @@
 ﻿global using System;
 global using System.Collections.Generic;
 global using System.Linq;
+using System.Globalization;
+using System.Reflection;
+using Locator.API.Data;
 using Locator.API.Data.Repositories;
 using Locator.API.Data.Repositories.Interfaces;
 using Locator.API.HostedServices;
@@ -10,15 +13,10 @@ using Locator.API.Services.Interfaces;
 using Locator.API.Storages;
 using Locator.API.Storages.Interfaces;
 using Locator.API.Utility;
-using System.Globalization;
-using Newtonsoft.Json.Converters;
 using Newtonsoft.Json;
-using LinqToDB.AspNet;
-using Locator.API.Data;
-using LinqToDB;
-using LinqToDB.AspNet.Logging;
-using System.Reflection;
-using System.Diagnostics;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Serialization;
+using Shared;
 
 string GetRequiredConfigString(string parameterName)
 {
@@ -75,69 +73,64 @@ void AddConfiguration(IServiceCollection services)
     {
         _.Servers = GetRequiredConfigString("KAFKA__BOOTSTRAP_SERVERS");
         _.GroupId = GetRequiredConfigString("KAFKA__GROUP_ID");
-        _.QuoteRequestTopic =
-            GetRequiredConfigString("KAFKA__QUOTE_REQUEST_TOPIC");
-        _.QuoteResponseTopic =
-            GetRequiredConfigString("KAFKA__QUOTE_RESPONSE_TOPIC");
-        _.NotificationTopic =
-            GetRequiredConfigString("KAFKA__NOTIFICATION_TOPIC");
-        _.AddInternalInventoryItemTopic =
-            GetRequiredConfigString("KAFKA__ADD_INVENTORY_ITEM_TOPIC");
-        _.InvalidateCacheCommandTopic =
-            GetRequiredConfigString("KAFKA__INVALIDATE_CACHE_COMMAND_TOPIC");
+        _.QuoteRequestTopic = GetRequiredConfigString("KAFKA__QUOTE_REQUEST_TOPIC");
+        _.QuoteResponseTopic = GetRequiredConfigString("KAFKA__QUOTE_RESPONSE_TOPIC");
+        _.NotificationTopic = GetRequiredConfigString("KAFKA__NOTIFICATION_TOPIC");
+        _.AddInternalInventoryItemTopic = GetRequiredConfigString(
+            "KAFKA__ADD_INVENTORY_ITEM_TOPIC"
+        );
+        _.InvalidateCacheCommandTopic = GetRequiredConfigString(
+            "KAFKA__INVALIDATE_CACHE_COMMAND_TOPIC"
+        );
     });
 
     services.Configure<QuoteTimeoutOptions>(o =>
     {
-        o.RemoveHistoryTimeout = GetConfigTimeSpan("LOCATOR__QUOTE_REMOVE_TIMEOUT", TimeSpan.FromMinutes(10));
-        o.MaxProviderQuoteWait = GetConfigTimeSpan("LOCATOR__MAX_PROVIDER_QUOTE_WAIT", TimeSpan.FromSeconds(5));
-        o.MaxProviderBuyWait = GetConfigTimeSpan("LOCATOR__MAX_PROVIDER_BUY_WAIT", TimeSpan.FromSeconds(30));
-        o.MaxQuoteAcceptWait = GetConfigTimeSpan("LOCATOR__MAX_ACCEPT_WAIT", TimeSpan.FromSeconds(30));
+        o.RemoveHistoryTimeout = GetConfigTimeSpan(
+            "LOCATOR__QUOTE_REMOVE_TIMEOUT",
+            TimeSpan.FromMinutes(10)
+        );
+        o.MaxProviderQuoteWait = GetConfigTimeSpan(
+            "LOCATOR__MAX_PROVIDER_QUOTE_WAIT",
+            TimeSpan.FromSeconds(5)
+        );
+        o.MaxProviderBuyWait = GetConfigTimeSpan(
+            "LOCATOR__MAX_PROVIDER_BUY_WAIT",
+            TimeSpan.FromSeconds(30)
+        );
+        o.MaxQuoteAcceptWait = GetConfigTimeSpan(
+            "LOCATOR__MAX_ACCEPT_WAIT",
+            TimeSpan.FromSeconds(30)
+        );
     });
 
     services.Configure<AppOptions>(o =>
     {
-        o.DayDataCleanupTimeUtc =
-            TimeOnly.Parse(GetRequiredConfigString("DAY_DATA_CLEANUP_TIME_UTC"));
-        o.NotificationSenderInterval =
-            TimeSpan.Parse(GetRequiredConfigString("NotificationSenderInterval"));
+        o.DayDataCleanupTimeUtc = TimeOnly.Parse(
+            GetRequiredConfigString("DAY_DATA_CLEANUP_TIME_UTC")
+        );
+        o.NotificationSenderInterval = TimeSpan.Parse(
+            GetRequiredConfigString("NotificationSenderInterval")
+        );
     });
 
     services.Configure<AutoDisableOptions>(o =>
     {
         o.MinFailed = int.Parse(GetRequiredConfigString("AUTO_DISABLE_PROVIDER__MIN_FAILED"));
-        o.SlidingWindow = TimeSpan.Parse(GetRequiredConfigString("AUTO_DISABLE_PROVIDER__SLIDING_WINDOW"));
-        o.PercentOfFailed = double.Parse(GetRequiredConfigString("AUTO_DISABLE_PROVIDER__PERCENT_OF_FAILED"));
+        o.SlidingWindow = TimeSpan.Parse(
+            GetRequiredConfigString("AUTO_DISABLE_PROVIDER__SLIDING_WINDOW")
+        );
+        o.PercentOfFailed = double.Parse(
+            GetRequiredConfigString("AUTO_DISABLE_PROVIDER__PERCENT_OF_FAILED")
+        );
         o.TakeQuoteSuccessIntoAccount = bool.Parse(
-            GetRequiredConfigString("AUTO_DISABLE_PROVIDER__TAKE_QUOTE_SUCCESS_INTO_ACCOUNT"));
+            GetRequiredConfigString("AUTO_DISABLE_PROVIDER__TAKE_QUOTE_SUCCESS_INTO_ACCOUNT")
+        );
     });
 
     var connectionString = GetRequiredConfigString("CONNECTION_STRING");
 
-    services.AddLinqToDBContext<DbConnection>((provider, options)
-        => options
-            //will configure the AppDataConnection to use
-            //SqlServer with the provided connection string
-            //there are methods for each supported database
-            .UseSqlServer(connectionString)
-            //default logging will log everything using
-            //an ILoggerFactory configured in the provider
-            .UseTraceLevel(System.Diagnostics.TraceLevel.Verbose)
-            .UseTraceMapperExpression(true)
-            .UseTracing(TraceLevel.Verbose, ti =>
-            {
-                using var activity = TracingConfiguration.StartActivity("linq2db trace");
-                activity.SetTag("Command", ti.Command);
-                activity.SetTag("CommandText", ti.CommandText);
-                if (ti.Exception != null)
-                {
-                    activity.AddException(ti.Exception);
-                }
-                activity.SetTag("MapperExpression", ti.MapperExpression);
-                activity.SetTag("SqlText", ti.SqlText);
-                activity.SetTag("TraceInfoStep", ti.TraceInfoStep);
-            })
-            .UseDefaultLogging(provider), ServiceLifetime.Scoped);
+    Linq2dbConfiguration.RegisterLinq2db<DbConnection>(services, connectionString);
 }
 
 void ConfigureServices(IServiceCollection services)
@@ -156,7 +149,6 @@ void ConfigureServices(IServiceCollection services)
     services.AddHostedService<QuoteTimeoutProcessor>();
     services.AddHostedService<DayDataCleaner>();
     services.AddHostedService<NotificationSender>();
-
 }
 
 var builder = WebApplication.CreateBuilder(args);
@@ -167,20 +159,17 @@ builder.Services.AddHealthChecks();
 
 // Add services to the container.
 
-builder.Services.AddControllers(options => { options.Filters.Add(typeof(ValidateModelAttribute)); })
-    .AddNewtonsoftJson(options =>
-    {
-        options.SerializerSettings.Converters.Add(new StringEnumConverter());
-        options.SerializerSettings.Converters.Add(new IsoDateTimeConverter
-        {
-            DateTimeStyles = DateTimeStyles.AdjustToUniversal
-        });
-    });
+JsonConvert.DefaultSettings = () => Converter.Settings;
 
-JsonConvert.DefaultSettings = () => new JsonSerializerSettings
-{
-    DateTimeZoneHandling = DateTimeZoneHandling.Utc
-};
+builder
+    .Services.AddControllers(options =>
+    {
+        options.Filters.Add(typeof(ValidateModelAttribute));
+    })
+    .AddNewtonsoftJson(o =>
+    {
+        o.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+    });
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -208,9 +197,6 @@ if (app.Environment.IsDevelopment())
 app.UseRouting();
 app.UseResponseCompression();
 
-
 app.MapControllers();
-
-
 
 app.Run();

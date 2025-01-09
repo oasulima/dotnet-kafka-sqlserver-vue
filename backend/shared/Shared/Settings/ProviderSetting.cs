@@ -1,12 +1,11 @@
-﻿#nullable enable
-namespace Shared.Settings;
+﻿namespace Shared.Settings;
 
 public class ProviderSetting
 {
-    public string ProviderId { get; set; }
-    public string Name { get; set; }
-    public decimal Discount { get; set; }
-    public bool Active { get; set; }
+    public required string ProviderId { get; set; }
+    public required string Name { get; set; }
+    public required decimal Discount { get; set; }
+    public required bool Active { get; set; }
 
     public string? QuoteRequestTopic { get; set; }
     public string? QuoteResponseTopic { get; set; }
@@ -16,11 +15,10 @@ public class ProviderSetting
 
     public override string ToString()
     {
-        return
-            $"{nameof(Name)}: {Name}, " +
-            $"{nameof(ProviderId)}: {ProviderId}, " +
-            $"{nameof(Discount)}: {Discount}, " +
-            $"{nameof(Active)}: {Active}";
+        return $"{nameof(Name)}: {Name}, "
+            + $"{nameof(ProviderId)}: {ProviderId}, "
+            + $"{nameof(Discount)}: {Discount}, "
+            + $"{nameof(Active)}: {Active}";
     }
 }
 
@@ -28,7 +26,7 @@ public class ProviderSettingExtended : ProviderSetting
 {
     public class AutoDisabledInfo
     {
-        public string[]? Symbols { get; set; }
+        public IList<string>? Symbols { get; set; }
     }
 
     public AutoDisabledInfo? AutoDisabled { get; set; }

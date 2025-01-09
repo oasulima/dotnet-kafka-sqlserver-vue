@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Admin.API.Services.Interfaces;
+﻿using Admin.API.Services.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 using Shared;
 using Shared.Refit;
 

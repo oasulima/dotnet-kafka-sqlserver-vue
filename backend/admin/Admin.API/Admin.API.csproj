@@ -3,7 +3,7 @@
         <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
-        <EnableSdkContainerSupport>true</EnableSdkContainerSupport>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Lib.AspNetCore.ServerSentEvents" Version="9.0.0" />

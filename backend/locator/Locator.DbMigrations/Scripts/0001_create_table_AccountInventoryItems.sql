@@ -9,8 +9,6 @@ CREATE TABLE [dbo].[AccountInventoryItems](
 	[Symbol] [varchar](20) NOT NULL,
 	[LocatedQuantity] [int] NOT NULL,
 	[AvailableQuantity] [int] NOT NULL,
-	[OriginalSource] [varchar](200) NOT NULL,
-	[OriginalPrice] [decimal](10, 5) NOT NULL,
 	[Timestamp] [datetime2](7) NOT NULL
 ) ON [PRIMARY]
 GO

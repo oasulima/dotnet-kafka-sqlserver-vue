@@ -31,13 +31,15 @@ public class LocatorErrorReporter : ILocatorErrorReporter
     {
         var message = error.Kind switch
         {
-            LocatorErrorKind.InternalInvSourceProviderNotProvided => "Internal Inventory Source is not provided. " +
-                                                                     $"Please provide Source for Internal Inventory locates.",
+            LocatorErrorKind.InternalInvSourceProviderNotProvided =>
+                "Internal Inventory Source is not provided. "
+                    + $"Please provide Source for Internal Inventory locates.",
 
-            LocatorErrorKind.InternalInvSourceProviderNotFound => "Internal Inventory Source is not configured. " +
-                                                                  $"Please configure Source.",
+            LocatorErrorKind.InternalInvSourceProviderNotFound =>
+                "Internal Inventory Source is not configured. " + $"Please configure Source.",
 
-            LocatorErrorKind.MinUserPriceViolation => $"Quote Price is less then MinUserPrice. MinUserPrice applied.",
+            LocatorErrorKind.MinUserPriceViolation =>
+                $"Quote Price is less then MinUserPrice. MinUserPrice applied.",
             _ => null,
         };
 
@@ -45,13 +47,15 @@ public class LocatorErrorReporter : ILocatorErrorReporter
 
         if (output != null)
         {
-            _notificationService.Add(new NotificationEvent(
-                Type: NotificationType.Error,
-                Kind: error.Kind.ToString(),
-                GroupParameters: error.Details ?? "",
-                Time: DateTime.UtcNow,
-                Message: output
-            ));
+            _notificationService.Add(
+                new NotificationEvent(
+                    Type: NotificationType.Error,
+                    Kind: error.Kind.ToString(),
+                    GroupParameters: error.Details ?? "",
+                    Time: DateTime.UtcNow,
+                    Message: output
+                )
+            );
         }
     }
 
@@ -60,18 +64,30 @@ public class LocatorErrorReporter : ILocatorErrorReporter
         var details = error.Details;
         var (level, message) = error.Kind switch
         {
-            LocatorErrorKind.InternalInvSourceProviderNotProvided => (PerfLogLevel.Warning,
-                "Internal Inventory Source is not provided. Locates are skipped."),
-            LocatorErrorKind.InternalInvSourceProviderNotFound => (PerfLogLevel.Warning,
-                "Internal Inventory Source is not found. Locates are skipped."),
-            LocatorErrorKind.RegularProviderProviderNotFound => (PerfLogLevel.Warning,
-                "Provider is not found. Locates are not included in Quote price calculation."),
-            LocatorErrorKind.RegularProviderPriceIsNotPositive => (PerfLogLevel.Warning,
-                "Provider Price should be greater then 0.  Locates are skipped."),
-            LocatorErrorKind.InternalInvProviderNotFound => (PerfLogLevel.Warning,
-                "Internal inventory provider is not found. Locates for this Provider are skipped."),
-            LocatorErrorKind.MinUserPriceViolation => (PerfLogLevel.Error,
-                $"Quote Price is less then MinUserPrice. MinUserPrice applied. {error.Details}, {moreDetails}"),
+            LocatorErrorKind.InternalInvSourceProviderNotProvided => (
+                PerfLogLevel.Warning,
+                "Internal Inventory Source is not provided. Locates are skipped."
+            ),
+            LocatorErrorKind.InternalInvSourceProviderNotFound => (
+                PerfLogLevel.Warning,
+                "Internal Inventory Source is not found. Locates are skipped."
+            ),
+            LocatorErrorKind.RegularProviderProviderNotFound => (
+                PerfLogLevel.Warning,
+                "Provider is not found. Locates are not included in Quote price calculation."
+            ),
+            LocatorErrorKind.RegularProviderPriceIsNotPositive => (
+                PerfLogLevel.Warning,
+                "Provider Price should be greater then 0.  Locates are skipped."
+            ),
+            LocatorErrorKind.InternalInvProviderNotFound => (
+                PerfLogLevel.Warning,
+                "Internal inventory provider is not found. Locates for this Provider are skipped."
+            ),
+            LocatorErrorKind.MinUserPriceViolation => (
+                PerfLogLevel.Error,
+                $"Quote Price is less then MinUserPrice. MinUserPrice applied. {error.Details}, {moreDetails}"
+            ),
             _ => (PerfLogLevel.None, null),
         };
 

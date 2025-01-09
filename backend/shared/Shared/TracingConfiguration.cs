@@ -1,13 +1,13 @@
-using Confluent.Kafka.Extensions.OpenTelemetry;
-using OpenTelemetry;
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Resources;
-using OpenTelemetry.Trace;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 //using System.Diagnostics.Metrics;
 using System.Reflection;
+using Confluent.Kafka.Extensions.OpenTelemetry;
+using OpenTelemetry;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 // Class to configure OpenTelemetry tracing
 public static class TracingConfiguration
@@ -28,7 +28,7 @@ public static class TracingConfiguration
                 ResourceBuilder
                     .CreateDefault()
                     .AddService(serviceName, serviceVersion: serviceVersion)
-                    .AddAttributes(new[] { new KeyValuePair<string, object>("environment", "development") }) // Additional attributes
+                    .AddAttributes([new KeyValuePair<string, object>("environment", "development")]) // Additional attributes
                     .AddTelemetrySdk() // Add telemetry SDK information to the traces
                     .AddEnvironmentVariableDetector()
             )
@@ -41,7 +41,8 @@ public static class TracingConfiguration
             {
                 o.Endpoint = new Uri("http://jaeger:4318/v1/traces");
                 o.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
-            }).Build();
+            })
+            .Build();
 
         // Set up the tracer provider with various configurations
         Sdk.CreateTracerProviderBuilder()
@@ -50,7 +51,7 @@ public static class TracingConfiguration
                 ResourceBuilder
                     .CreateDefault()
                     .AddService(serviceName, serviceVersion: serviceVersion)
-                    .AddAttributes(new[] { new KeyValuePair<string, object>("environment", "development") }) // Additional attributes
+                    .AddAttributes([new KeyValuePair<string, object>("environment", "development")]) // Additional attributes
                     .AddTelemetrySdk() // Add telemetry SDK information to the traces
                     .AddEnvironmentVariableDetector()
             ) // Detect resource attributes from environment variables
@@ -82,10 +83,13 @@ public static class TracingConfiguration
     }
 
     // Method to start a new tracing activity with an optional activity kind
-    public static Activity? StartActivity(string activityName, ActivityKind kind = ActivityKind.Internal)
+    public static Activity StartActivity(
+        string activityName,
+        ActivityKind kind = ActivityKind.Internal
+    )
     {
         // Starts and returns a new activity if sampling allows it, otherwise returns null
-        return ActivitySource.StartActivity(activityName, kind);
+        return ActivitySource.StartActivity(activityName, kind)!;
     }
 
     public static void LogException(this Activity activity, Exception exception)

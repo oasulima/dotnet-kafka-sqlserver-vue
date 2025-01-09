@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Admin.API.Services.Interfaces;
+﻿namespace Admin.API.Services.Interfaces;
 
 public interface ITimeService
 {

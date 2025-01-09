@@ -1,5 +1,5 @@
-﻿using Shared.Settings;
-using Refit;
+﻿using Refit;
+using Shared.Settings;
 
 namespace Shared.Refit.Locator;
 
@@ -9,13 +9,13 @@ public interface IProviderSettingController
     Task<ProviderSettingExtended[]> GetProviderSettings();
 
     [Post("/api/settings/provider")]
-    Task<ProviderSetting> AddProviderSetting([Body] ProviderSettingRequest settingRequest);
+    Task AddProviderSetting([Body] ProviderSettingRequest settingRequest);
 
     [Put("/api/settings/provider")]
-    Task<ProviderSetting> UpdateProviderSetting([Body] ProviderSettingRequest settingRequest);
+    Task UpdateProviderSetting([Body] ProviderSettingRequest settingRequest);
 
     [Delete("/api/settings/provider/{providerId}")]
-    Task<bool> DeleteProviderSetting(string providerId);
+    Task DeleteProviderSetting(string providerId);
 
     [Post("/api/settings/provider/self-reg")]
     Task<ProviderSetting> SelfReg([Body] ProviderSelfRegRequest selfRegRequest);

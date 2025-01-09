@@ -1,8 +1,8 @@
 ﻿using Confluent.Kafka;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using Locator.API.Models.Options;
 using Locator.API.Services.Interfaces;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using Shared;
 
 namespace Locator.API.Services;
@@ -22,11 +22,15 @@ public class NotificationEventSender : INotificationEventSender
     {
         try
         {
-            KafkaUtils.Produce(_kafkaOptions.Servers, NotificationTopic, notifications, ProcessDeliveryReport);
+            KafkaUtils.Produce(
+                _kafkaOptions.Servers,
+                NotificationTopic,
+                notifications,
+                ProcessDeliveryReport
+            );
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-
             // NotificationEventSender shouldn't throw exceptions, just log.
         }
     }

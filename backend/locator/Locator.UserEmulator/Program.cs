@@ -1,9 +1,9 @@
 // See https://aka.ms/new-console-template for more information
 
-using TradeZero.Locator.Emulator;
-using TradeZero.Locator.Emulator.Kafka;
-using TradeZero.Locator.Emulator.Options;
-using TradeZero.Locator.Emulator.Services;
+using Locator.UserEmulator;
+using Locator.UserEmulator.Kafka;
+using Locator.UserEmulator.Options;
+using Locator.UserEmulator.Services;
 
 static string GetRequiredConfigString(string parameterName)
 {
@@ -58,11 +58,13 @@ var emulatorOptions = new EmulatorOptions
     MaxQuoteQuantity = GetRequiredConfigInt("MAX_QUOTE_QUANTITY"),
     MinSellQuantity = GetRequiredConfigInt("MIN_SELL_QUANTITY"),
     MaxSellQuantity = GetRequiredConfigInt("MAX_SELL_QUANTITY"),
-    PriceManipulatorInterval = TimeSpan.Parse(GetRequiredConfigString("PRICE_MANIPULATOR_INTERVAL")),
+    PriceManipulatorInterval = TimeSpan.Parse(
+        GetRequiredConfigString("PRICE_MANIPULATOR_INTERVAL")
+    ),
     MinProviderDiscount = GetRequiredConfigInt("MIN_PROVIDER_DISCOUNT"),
     MaxProviderDiscount = GetRequiredConfigInt("MAX_PROVIDER_DISCOUNT"),
     MinPriceCents = GetRequiredConfigInt("MIN_PRICE_CENTS"),
-    MaxPriceCents = GetRequiredConfigInt("MAX_PRICE_CENTS")
+    MaxPriceCents = GetRequiredConfigInt("MAX_PRICE_CENTS"),
 };
 var kafkaOptions = new KafkaOptions()
 {
@@ -70,7 +72,7 @@ var kafkaOptions = new KafkaOptions()
     GroupId = GetRequiredConfigString("KAFKA__GROUP_ID"),
     LocatorRequestTopic = GetRequiredConfigString("KAFKA__LOCATOR_QUOTE_REQUEST_TOPIC"),
     LocatorResponseTopic = GetRequiredConfigString("KAFKA__LOCATOR_QUOTE_RESPONSE_TOPIC"),
-    NumberOfListeners = GetRequiredConfigInt("NUMBER_OF_LISTENERS")
+    NumberOfListeners = GetRequiredConfigInt("NUMBER_OF_LISTENERS"),
 };
 var apiOptions = new ApiOptions()
 {
@@ -113,7 +115,6 @@ foreach (var emulator in emulators)
     backgroundTasks.Add(_);
 }
 
-
 SharedData.Log("Ctrl+C to stop");
 
 await Task.Delay(emulatorOptions.EmulationLength, cts.Token);
@@ -154,7 +155,6 @@ catch (AggregateException e)
     Console.WriteLine("Exception was thrown during waiting of graceful stop of statistic writer");
     Console.WriteLine(e.ToString());
 }
-
 
 if (SharedData.Cache.Count > 0)
 {

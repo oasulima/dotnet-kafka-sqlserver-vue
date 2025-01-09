@@ -5,8 +5,10 @@ public static class Constants
     public static class ENV
     {
         public const string KAFKA__BOOTSTRAP_SERVERS = "KAFKA__BOOTSTRAP_SERVERS";
-        public const string KAFKA__LOCATOR_QUOTE_RESPONSE_TOPIC = "KAFKA__LOCATOR_QUOTE_RESPONSE_TOPIC";
-        public const string KAFKA__LOCATOR_QUOTE_REQUEST_TOPIC = "KAFKA__LOCATOR_QUOTE_REQUEST_TOPIC";
+        public const string KAFKA__LOCATOR_QUOTE_RESPONSE_TOPIC =
+            "KAFKA__LOCATOR_QUOTE_RESPONSE_TOPIC";
+        public const string KAFKA__LOCATOR_QUOTE_REQUEST_TOPIC =
+            "KAFKA__LOCATOR_QUOTE_REQUEST_TOPIC";
         public const string KAFKA__NOTIFICATION_TOPIC = "KAFKA__NOTIFICATION_TOPIC";
         public const string LOCATOR_BASE_URL = "LOCATOR_BASE_URL";
         public const string VELOCITY_MOCK_BASE_URL = "VELOCITY_MOCK_BASE_URL";
@@ -19,9 +21,11 @@ public static class Constants
         public const string ORDER_BOOK_BASE_URL = "ORDER_BOOK_BASE_URL";
         public const string CONNECTION_STRING = "CONNECTION_STRING";
         public const string DATA_CLEANER_RUN_TIME_UTC = "DATA_CLEANER_RUN_TIME_UTC";
-        public const string SETTINGS_UPDATER__UPDATE_PERIOD_TIME = "SETTINGS_UPDATER__UPDATE_PERIOD_TIME";
-        public const string KAFKA__INVALIDATE_CACHE_COMMAND_TOPIC = "KAFKA__INVALIDATE_CACHE_COMMAND_TOPIC";
-    } 
+        public const string SETTINGS_UPDATER__UPDATE_PERIOD_TIME =
+            "SETTINGS_UPDATER__UPDATE_PERIOD_TIME";
+        public const string KAFKA__INVALIDATE_CACHE_COMMAND_TOPIC =
+            "KAFKA__INVALIDATE_CACHE_COMMAND_TOPIC";
+    }
 
     public static class SSEMethods
     {

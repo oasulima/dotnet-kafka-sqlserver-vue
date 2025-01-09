@@ -2,11 +2,11 @@
 
 public class KafkaOptions
 {
-    public string Servers { get; set; }
-    public string GroupId { get; set; }
-    public string QuoteRequestTopic { get; set; }
-    public string QuoteResponseTopic { get; set; }
-    public string NotificationTopic { get; set; }
-    public string AddInternalInventoryItemTopic { get; set; }
-    public string InvalidateCacheCommandTopic { get; set; }
+    public required string Servers { get; set; }
+    public required string GroupId { get; set; }
+    public required string QuoteRequestTopic { get; set; }
+    public required string QuoteResponseTopic { get; set; }
+    public required string NotificationTopic { get; set; }
+    public required string AddInternalInventoryItemTopic { get; set; }
+    public required string InvalidateCacheCommandTopic { get; set; }
 }

@@ -1,14 +1,17 @@
-﻿using TradeZero.Locator.Emulator.Options;
+﻿using Locator.UserEmulator;
+using Locator.UserEmulator.Options;
 
-namespace TradeZero.Locator.Emulator.Services;
+namespace Locator.UserEmulator.Services;
 
 public class PriceManipulator
 {
     private readonly EmulatorOptions _emulatorOptions;
     private readonly InternalInventoryApi _internalInventoryApi;
 
-    public PriceManipulator(EmulatorOptions emulatorOptions,
-        InternalInventoryApi internalInventoryApi)
+    public PriceManipulator(
+        EmulatorOptions emulatorOptions,
+        InternalInventoryApi internalInventoryApi
+    )
     {
         _emulatorOptions = emulatorOptions;
         _internalInventoryApi = internalInventoryApi;
@@ -34,10 +37,7 @@ public class PriceManipulator
                 ChangeData();
             }
         }
-        catch (TaskCanceledException)
-        {
-
-        }
+        catch (TaskCanceledException) { }
 
         SharedData.Log($"Stop price manipulator");
     }

@@ -1,18 +1,17 @@
-using System;
 using Shared;
 
 namespace Admin.API.Models.Cache;
 
 public class LocateRequestModel
 {
-    public string Id { get; init; } = string.Empty;
-    public string AccountId { get; set; } = string.Empty;
-    public DateTime Time { get; set; }
-    public string Symbol { get; set; } = string.Empty;
-    public int QtyReq { get; set; }
-    public int QtyOffer { get; set; }
-    public decimal Price { get; set; }
-    public decimal DiscountedPrice { get; set; }
-    public string Source { get; set; } = string.Empty;
-    public QuoteSourceInfo[] SourceDetails { get; set; }
+    public required string Id { get; init; }
+    public required string AccountId { get; set; }
+    public required DateTime Time { get; set; }
+    public required string Symbol { get; set; }
+    public required int QtyReq { get; set; }
+    public required int QtyOffer { get; set; }
+    public required decimal Price { get; set; }
+    public required decimal DiscountedPrice { get; set; }
+    public required string Source { get; set; }
+    public required IList<QuoteSourceInfo> SourceDetails { get; set; }
 }

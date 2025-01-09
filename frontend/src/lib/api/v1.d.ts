@@ -539,11 +539,7 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content: {
-                        "text/plain": components["schemas"]["ProviderSetting"];
-                        "application/json": components["schemas"]["ProviderSetting"];
-                        "text/json": components["schemas"]["ProviderSetting"];
-                    };
+                    content?: never;
                 };
             };
         };
@@ -568,11 +564,7 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content: {
-                        "text/plain": components["schemas"]["ProviderSetting"];
-                        "application/json": components["schemas"]["ProviderSetting"];
-                        "text/json": components["schemas"]["ProviderSetting"];
-                    };
+                    content?: never;
                 };
             };
         };
@@ -643,11 +635,7 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content: {
-                        "text/plain": boolean;
-                        "application/json": boolean;
-                        "text/json": boolean;
-                    };
+                    content?: never;
                 };
             };
         };
@@ -1040,8 +1028,8 @@ export interface components {
             price: number;
             source: string;
             creatingType: components["schemas"]["CreatingType"];
-            tag: string | null;
-            coveredInvItemId: string | null;
+            tag?: string | null;
+            coveredInvItemId?: string | null;
             status: components["schemas"]["State"];
             /** Format: date-time */
             createdAt: string;
@@ -1056,9 +1044,6 @@ export interface components {
             locatedQuantity: number;
             /** Format: int32 */
             availableQuantity: number;
-            originalSource: string;
-            /** Format: double */
-            originalPrice: number;
         };
         InventoryRequest: {
             accountId: string;
@@ -1109,63 +1094,51 @@ export interface components {
             /** Format: int32 */
             reqQty: number;
             /** Format: int32 */
-            fillQty: number | null;
+            fillQty?: number | null;
             /** Format: double */
-            price: number | null;
+            price?: number | null;
             /** Format: double */
-            discountedPrice: number | null;
+            discountedPrice?: number | null;
             /** Format: double */
-            fee: number | null;
+            fee?: number | null;
             /** Format: double */
-            discountedFee: number | null;
+            discountedFee?: number | null;
             /** Format: double */
-            profit: number | null;
-            provider: string;
+            profit?: number | null;
             source: string;
             sources: components["schemas"]["QuoteSourceInfo"][];
-            errorMessage: string;
+            errorMessage?: string | null;
             /** Format: int32 */
             totalCount: number;
         };
         LocatesReportDataRequest: {
             /** Format: int32 */
-            skip: number | null;
+            skip?: number | null;
             /** Format: int32 */
-            take: number | null;
+            take?: number | null;
             orderBy: string;
             /** Format: date-time */
-            from: string | null;
+            from?: string | null;
             /** Format: date-time */
-            to: string | null;
-            status: components["schemas"]["QuoteResponseStatusEnum"];
-            symbol: string | null;
-            accountId: string | null;
-            providerId: string | null;
+            to?: string | null;
+            status?: components["schemas"]["QuoteResponseStatusEnum"];
+            symbol?: string | null;
+            accountId?: string | null;
+            providerId?: string | null;
         };
         /** @enum {string} */
         NotificationType: "Warning" | "Error" | "Critical";
-        ProviderSetting: {
-            providerId: string;
-            name: string;
-            /** Format: double */
-            discount: number;
-            active: boolean;
-            quoteRequestTopic: string | null;
-            quoteResponseTopic: string | null;
-            buyRequestTopic: string | null;
-            buyResponseTopic: string | null;
-        };
         ProviderSettingExtended: {
-            autoDisabled: components["schemas"]["AutoDisabledInfo"];
+            autoDisabled?: components["schemas"]["AutoDisabledInfo"];
             providerId: string;
             name: string;
             /** Format: double */
             discount: number;
             active: boolean;
-            quoteRequestTopic: string | null;
-            quoteResponseTopic: string | null;
-            buyRequestTopic: string | null;
-            buyResponseTopic: string | null;
+            quoteRequestTopic?: string | null;
+            quoteResponseTopic?: string | null;
+            buyRequestTopic?: string | null;
+            buyResponseTopic?: string | null;
         };
         ProviderSettingRequest: {
             providerId: string;
@@ -1227,7 +1200,6 @@ export type LocateRequestModel = components['schemas']['LocateRequestModel'];
 export type LocatesReportData = components['schemas']['LocatesReportData'];
 export type LocatesReportDataRequest = components['schemas']['LocatesReportDataRequest'];
 export type NotificationType = components['schemas']['NotificationType'];
-export type ProviderSetting = components['schemas']['ProviderSetting'];
 export type ProviderSettingExtended = components['schemas']['ProviderSettingExtended'];
 export type ProviderSettingRequest = components['schemas']['ProviderSettingRequest'];
 export type QuoteRequest = components['schemas']['QuoteRequest'];

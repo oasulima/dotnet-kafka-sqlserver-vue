@@ -2,9 +2,9 @@
 
 public class KafkaOptions
 {
-    public string Servers { get; set; } = string.Empty;
-    public string GroupId { get; set; } = string.Empty;
-    public string QuoteRequestTopic { get; set; } = string.Empty;
-    public string QuoteResponseTopic { get; set; } = string.Empty;
-    public string InternalInventoryItemReportingTopic { get; set; } = string.Empty;
+    public required string Servers { get; set; }
+    public required string GroupId { get; set; }
+    public required string QuoteRequestTopic { get; set; }
+    public required string QuoteResponseTopic { get; set; }
+    public required string InternalInventoryItemReportingTopic { get; set; }
 }

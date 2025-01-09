@@ -1,9 +1,9 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
-using Locator.API.Data.Exceptions;
+﻿using Locator.API.Data.Exceptions;
 using Locator.API.Data.Repositories.Interfaces;
 using Locator.API.Services.Interfaces;
 using Locator.API.Utility;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using Shared;
 using Shared.API;
 using Shared.Settings;
@@ -18,8 +18,10 @@ public class ProviderSettingController : ControllerBase
     private readonly IAutoDisableProvidersService _autoDisableProvidersService;
 
     public ProviderSettingController(
-        IProviderSettingRepository providerSettingRepository, IEventSender eventSender,
-        IAutoDisableProvidersService autoDisableProvidersService)
+        IProviderSettingRepository providerSettingRepository,
+        IEventSender eventSender,
+        IAutoDisableProvidersService autoDisableProvidersService
+    )
     {
         _providerSettingRepository = providerSettingRepository;
         _eventSender = eventSender;
@@ -31,44 +33,52 @@ public class ProviderSettingController : ControllerBase
     {
         var providerSettings = _providerSettingRepository.GetAll();
         var autoDisabled = _autoDisableProvidersService.GetDisabledProviders();
-        var result = providerSettings.Select(ps => new ProviderSettingExtended
-        {
-            ProviderId = ps.ProviderId,
-            Name = ps.Name,
-            Discount = ps.Discount,
-            Active = ps.Active,
-            QuoteRequestTopic = ps.QuoteRequestTopic,
-            QuoteResponseTopic = ps.QuoteResponseTopic,
-            BuyRequestTopic = ps.BuyRequestTopic,
-            BuyResponseTopic = ps.BuyResponseTopic,
-            AutoDisabled = autoDisabled.ContainsKey(ps.ProviderId)
-                ? new() { Symbols = autoDisabled[ps.ProviderId] }
-                : null
-        }).ToArray();
+        var result = providerSettings
+            .Select(ps => new ProviderSettingExtended
+            {
+                ProviderId = ps.ProviderId,
+                Name = ps.Name,
+                Discount = ps.Discount,
+                Active = ps.Active,
+                QuoteRequestTopic = ps.QuoteRequestTopic,
+                QuoteResponseTopic = ps.QuoteResponseTopic,
+                BuyRequestTopic = ps.BuyRequestTopic,
+                BuyResponseTopic = ps.BuyResponseTopic,
+                AutoDisabled = autoDisabled.ContainsKey(ps.ProviderId)
+                    ? new() { Symbols = autoDisabled[ps.ProviderId] }
+                    : null,
+            })
+            .ToArray();
         return TypedResults.Ok(result);
     }
 
     [HttpPost("/api/settings/provider")]
-    public Results<BadRequest<ServerErrorInfo>, Ok<ProviderSetting>> AddProviderSetting([FromBody] ProviderSettingRequest settingRequest)
+    public Results<BadRequest<ServerErrorInfo>, Ok> AddProviderSetting(
+        [FromBody] ProviderSettingRequest settingRequest
+    )
     {
         try
         {
             var providerSetting = settingRequest.ToProviderSetting();
             _providerSettingRepository.Add(providerSetting);
-            var domainSetting = _providerSettingRepository.Get(providerSetting.ProviderId);
             _eventSender.SendInvalidateCacheCommand(
-                new SyncCommand.InvalidateCache(SyncCommand.CacheTypeEnum.ProviderSettings));
-            return TypedResults.Ok(domainSetting.ToResponse());
+                new SyncCommand.InvalidateCache(SyncCommand.CacheTypeEnum.ProviderSettings)
+            );
+            return TypedResults.Ok();
         }
         catch (UniqueConstraintViolationException ex)
         {
             ModelState.AddModelError(ex.ColumnName, "Should be unique");
-            return TypedResults.BadRequest(new ServerErrorInfo { Message = ex.ColumnName, Detail = "Should be unique" });
+            return TypedResults.BadRequest(
+                new ServerErrorInfo { Message = ex.ColumnName, Detail = "Should be unique" }
+            );
         }
     }
 
     [HttpPut("/api/settings/provider")]
-    public Results<NotFound<string>, Ok<ProviderSetting>> UpdateProviderSetting([FromBody] ProviderSettingRequest settingRequest)
+    public Results<NotFound<string>, Ok> UpdateProviderSetting(
+        [FromBody] ProviderSettingRequest settingRequest
+    )
     {
         var storageProviderSetting = _providerSettingRepository.Get(settingRequest.ProviderId!);
 
@@ -84,20 +94,23 @@ public class ProviderSettingController : ControllerBase
         providerSetting.QuoteResponseTopic = storageProviderSetting.QuoteResponseTopic;
 
         _providerSettingRepository.Update(providerSetting);
-        var updatedProviderSetting = _providerSettingRepository.Get(providerSetting.ProviderId);
 
-        _eventSender.SendInvalidateCacheCommand(new SyncCommand.InvalidateCache(SyncCommand.CacheTypeEnum.ProviderSettings));
+        _eventSender.SendInvalidateCacheCommand(
+            new SyncCommand.InvalidateCache(SyncCommand.CacheTypeEnum.ProviderSettings)
+        );
 
-        return updatedProviderSetting == null ? TypedResults.NotFound("Setting not found.") : TypedResults.Ok(updatedProviderSetting);
+        return TypedResults.Ok();
     }
 
     [HttpDelete("/api/settings/provider/{providerId}")]
-    public Ok<bool> DeleteProviderSetting(string providerId)
+    public Ok DeleteProviderSetting(string providerId)
     {
         _providerSettingRepository.Delete(providerId);
 
-        _eventSender.SendInvalidateCacheCommand(new SyncCommand.InvalidateCache(SyncCommand.CacheTypeEnum.ProviderSettings));
-        return TypedResults.Ok(true);
+        _eventSender.SendInvalidateCacheCommand(
+            new SyncCommand.InvalidateCache(SyncCommand.CacheTypeEnum.ProviderSettings)
+        );
+        return TypedResults.Ok();
     }
 
     [HttpPost("/api/settings/provider/self-reg")]
@@ -129,7 +142,9 @@ public class ProviderSettingController : ControllerBase
 
         providerSetting = _providerSettingRepository.Get(providerSetting.ProviderId);
 
-        _eventSender.SendInvalidateCacheCommand(new SyncCommand.InvalidateCache(SyncCommand.CacheTypeEnum.ProviderSettings));
+        _eventSender.SendInvalidateCacheCommand(
+            new SyncCommand.InvalidateCache(SyncCommand.CacheTypeEnum.ProviderSettings)
+        );
 
         return TypedResults.Ok(providerSetting);
     }

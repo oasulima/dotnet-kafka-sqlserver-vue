@@ -16,5 +16,5 @@ public class LocateModel
     public required QuoteResponseStatusEnum Status { get; set; }
     public string? ErrorMessage { get; set; }
     public required string Source { get; set; }
-    public required QuoteSourceInfo[] SourceDetails { get; set; }
+    public required IList<QuoteSourceInfo> SourceDetails { get; set; }
 }

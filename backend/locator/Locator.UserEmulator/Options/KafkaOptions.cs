@@ -1,4 +1,4 @@
-﻿namespace TradeZero.Locator.Emulator.Options;
+﻿namespace Locator.UserEmulator.Options;
 
 public class KafkaOptions
 {

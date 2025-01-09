@@ -10,27 +10,39 @@ public class InternalInventoryItemController : ControllerBase
 {
     private readonly IInternalInventoryItemRepository _internalInventoryItemRepository;
 
-    public InternalInventoryItemController(IInternalInventoryItemRepository internalInventoryItemRepository)
+    public InternalInventoryItemController(
+        IInternalInventoryItemRepository internalInventoryItemRepository
+    )
     {
         _internalInventoryItemRepository = internalInventoryItemRepository;
     }
 
     [HttpGet("/api/internal-inventory/items/history")]
-    public InternalInventoryItem[] GetInternalInventoryItemsHistory([FromQuery] int take,
-        [FromQuery] string? symbol = null, [FromQuery] string? providerId = null,
-        [FromQuery] DateTime? beforeCreatedAt = null)
+    public InternalInventoryItem[] GetInternalInventoryItemsHistory(
+        [FromQuery] int take,
+        [FromQuery] string? symbol = null,
+        [FromQuery] string? providerId = null,
+        [FromQuery] DateTime? beforeCreatedAt = null
+    )
     {
-        return _internalInventoryItemRepository.GetInternalInventoryItemsHistory(take, providerId, symbol, beforeCreatedAt)
-            .Select(Mappers.ToInternalInventoryItem).ToArray();
+        return _internalInventoryItemRepository
+            .GetInternalInventoryItemsHistory(take, providerId, symbol, beforeCreatedAt)
+            .Select(Mappers.ToInternalInventoryItem)
+            .ToArray();
     }
 
     [HttpGet("/api/internal-inventory/items")]
-    public InternalInventoryItem[] GetInternalInventoryItems([FromQuery] DateTime? from = null,
-        [FromQuery] DateTime? to = null, [FromQuery] string? symbol = null, [FromQuery] CreatingType? creatingType = null,
-        [FromQuery] InternalInventoryItem.State? status = null)
+    public InternalInventoryItem[] GetInternalInventoryItems(
+        [FromQuery] DateTime? from = null,
+        [FromQuery] DateTime? to = null,
+        [FromQuery] string? symbol = null,
+        [FromQuery] CreatingType? creatingType = null,
+        [FromQuery] InternalInventoryItem.State? status = null
+    )
     {
-        return _internalInventoryItemRepository.GetInternalInventoryItems(from, to, symbol, creatingType,
-                status)
-            .Select(Mappers.ToInternalInventoryItem).ToArray();
+        return _internalInventoryItemRepository
+            .GetInternalInventoryItems(from, to, symbol, creatingType, status)
+            .Select(Mappers.ToInternalInventoryItem)
+            .ToArray();
     }
 }

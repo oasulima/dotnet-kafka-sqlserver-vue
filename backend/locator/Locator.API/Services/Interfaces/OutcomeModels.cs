@@ -4,13 +4,11 @@ public record LocatorError(LocatorErrorKind Kind, string? Details = null);
 
 public record Outcome<TResult>(TResult Result, IReadOnlyCollection<LocatorError> Errors)
 {
-    public Outcome(TResult result) : this(result, Array.Empty<LocatorError>())
-    {
-    }
+    public Outcome(TResult result)
+        : this(result, Array.Empty<LocatorError>()) { }
 
-    public Outcome(TResult result, LocatorError error) : this(result, new [] { error })
-    {
-    }
+    public Outcome(TResult result, LocatorError error)
+        : this(result, new[] { error }) { }
 
     public TResult Unwrap(List<LocatorError> errorList)
     {
@@ -31,5 +29,5 @@ public enum LocatorErrorKind
     ProviderAutoDisabled,
     ProviderReEnabled,
     SymbolInProviderAutoDisabled,
-    NegativeProfitQuote
+    NegativeProfitQuote,
 }

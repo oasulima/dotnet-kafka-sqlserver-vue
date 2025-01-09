@@ -1,4 +1,3 @@
-using Admin.API.Models;
 using Admin.API.Models.Cache;
 using Shared;
 

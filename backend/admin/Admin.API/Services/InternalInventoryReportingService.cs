@@ -9,15 +9,18 @@ public class InternalInventoryReportingService : IInternalInventoryReportingServ
     private readonly ITimeService _timeService;
     private readonly IReportingApi _reportingApi;
 
-    public InternalInventoryReportingService(ITimeService timeService,
-        IReportingApi reportingApi)
+    public InternalInventoryReportingService(ITimeService timeService, IReportingApi reportingApi)
     {
         _timeService = timeService;
         _reportingApi = reportingApi;
     }
 
-    public Task<IEnumerable<InternalInventoryItem>> GetPreviousDaysInventoryItems(int take, string? providerId,
-        string? symbol = null, DateTime? currentDateTime = null)
+    public Task<IEnumerable<InternalInventoryItem>> GetPreviousDaysInventoryItems(
+        int take,
+        string? providerId,
+        string? symbol = null,
+        DateTime? currentDateTime = null
+    )
     {
         DateTime? previousCleanup = null;
         if (currentDateTime != null)
@@ -25,11 +28,19 @@ public class InternalInventoryReportingService : IInternalInventoryReportingServ
             previousCleanup = _timeService.GetPreviousCleanupTimeInUtc(currentDateTime.Value);
         }
 
-        return _reportingApi.GetInternalInventoryItemsHistory(take, symbol, providerId, previousCleanup);
+        return _reportingApi.GetInternalInventoryItemsHistory(
+            take,
+            symbol,
+            providerId,
+            previousCleanup
+        );
     }
 
-    public Task<IEnumerable<InternalInventoryItem>> GetInternalInventoryItems(string? symbol = null, CreatingType? creatingType = null,
-        InternalInventoryItem.State? status = null)
+    public Task<IEnumerable<InternalInventoryItem>> GetInternalInventoryItems(
+        string? symbol = null,
+        CreatingType? creatingType = null,
+        InternalInventoryItem.State? status = null
+    )
     {
         var from = _timeService.GetPreviousCleanupTimeInUtc(DateTime.UtcNow);
 

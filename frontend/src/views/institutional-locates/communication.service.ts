@@ -349,6 +349,10 @@ export class InstitutionalLocatesService {
   }
 
   private insertIntoLocateStore(locate: LocateModel): void {
+    if (!locate.sourceDetails) {
+      console.log('🚀 ~ InstitutionalLocatesService ~ insertIntoLocateStore ~ locate:', locate);
+
+    }
     const time = dayjs.utc(locate.time);
     const fee = locate.qtyFill * locate.price;
     const cost = locate.qtyFill * locate.discountedPrice;

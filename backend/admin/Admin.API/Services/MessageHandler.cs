@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
-using Refit;
 using Admin.API.Models.Cache;
 using Admin.API.Services.Interfaces;
+using Refit;
 using Shared;
 using Shared.Quote;
 using Shared.Refit;
@@ -25,7 +25,8 @@ public class MessageHandler : IMessageHandler
         ILocatesCache locatesCache,
         INotificationsServiceBase adminUiHubMethods,
         ITimeService timeService,
-        IReportingApi reportingApi)
+        IReportingApi reportingApi
+    )
     {
         _locateRequestsCache = locateRequestsCache;
         _locatesCache = locatesCache;
@@ -43,8 +44,10 @@ public class MessageHandler : IMessageHandler
         using var activity = TracingConfiguration.StartActivity("MessageHandler.RestoreData");
         try
         {
-            ConcurrentQueue<(List<LocateRequestModel> locateRequests, List<LocateModel> locates)> handledResponsesToSend =
-        new();
+            ConcurrentQueue<(
+                List<LocateRequestModel> locateRequests,
+                List<LocateModel> locates
+            )> handledResponsesToSend = new();
             var utcNow = DateTime.UtcNow;
             var from = _timeService.GetPreviousCleanupTimeInUtc(utcNow);
 
@@ -52,17 +55,22 @@ public class MessageHandler : IMessageHandler
 
             var handlingResponsesCts = new CancellationTokenSource();
 
-            var sendingResponsesTask = RestoreData_SendHandledResponses(handlingResponsesCts.Token, handledResponsesToSend);
+            var sendingResponsesTask = RestoreData_SendHandledResponses(
+                handlingResponsesCts.Token,
+                handledResponsesToSend
+            );
 
             while (!_expressRestoringStopCts.IsCancellationRequested)
             {
+                var responses = await reportingApi.GetLocatorQuoteResponses(
+                    from,
+                    utcNow,
+                    RestoreData_Take,
+                    skip
+                );
 
-                var responses =
-                    await reportingApi.GetLocatorQuoteResponses(from, utcNow, RestoreData_Take, skip);
-
-
-
-                if (responses.Count == 0) break;
+                if (responses.Count == 0)
+                    break;
 
                 RestoreData_HandleResponses(responses, handledResponsesToSend);
                 skip += RestoreData_Take;
@@ -79,9 +87,7 @@ public class MessageHandler : IMessageHandler
             {
                 await sendingResponsesTask;
             }
-            catch (TaskCanceledException)
-            {
-            }
+            catch (TaskCanceledException) { }
         }
         catch (Exception e)
         {
@@ -97,22 +103,26 @@ public class MessageHandler : IMessageHandler
         {
             restoringDataTask?.GetAwaiter().GetResult();
         }
-        catch (TaskCanceledException e)
-        {
-        }
+        catch (TaskCanceledException) { }
 
         _locatesCache.Clear();
         _locateRequestsCache.Clear();
     }
 
-    private void RestoreData_HandleResponses(IList<LocatorQuoteResponse> responses,
-        ConcurrentQueue<(List<LocateRequestModel> locateRequests, List<LocateModel> locates)> handledResponsesToSend)
+    private void RestoreData_HandleResponses(
+        IList<LocatorQuoteResponse> responses,
+        ConcurrentQueue<(
+            List<LocateRequestModel> locateRequests,
+            List<LocateModel> locates
+        )> handledResponsesToSend
+    )
     {
         List<LocateRequestModel> locateRequests = new List<LocateRequestModel>(RestoreData_Take);
         List<LocateModel> locates = new List<LocateModel>(RestoreData_Take);
         foreach (var response in responses)
         {
-            if (_expressRestoringStopCts.IsCancellationRequested) break;
+            if (_expressRestoringStopCts.IsCancellationRequested)
+                break;
 
             var (locateRequest, locate) = Handle(response);
             if (locateRequest != null)
@@ -132,13 +142,23 @@ public class MessageHandler : IMessageHandler
         }
     }
 
-    private async Task RestoreData_SendHandledResponses(CancellationToken handlingResponsesCts,
-        ConcurrentQueue<(List<LocateRequestModel> locateRequests, List<LocateModel> locates)> handledResponsesToSend)
+    private async Task RestoreData_SendHandledResponses(
+        CancellationToken handlingResponsesCts,
+        ConcurrentQueue<(
+            List<LocateRequestModel> locateRequests,
+            List<LocateModel> locates
+        )> handledResponsesToSend
+    )
     {
-        while (!_expressRestoringStopCts.IsCancellationRequested && !handlingResponsesCts.IsCancellationRequested)
+        while (
+            !_expressRestoringStopCts.IsCancellationRequested
+            && !handlingResponsesCts.IsCancellationRequested
+        )
         {
             await Task.Delay(500, handlingResponsesCts);
-            while (!_expressRestoringStopCts.IsCancellationRequested && !handledResponsesToSend.IsEmpty)
+            while (
+                !_expressRestoringStopCts.IsCancellationRequested && !handledResponsesToSend.IsEmpty
+            )
             {
                 handledResponsesToSend.TryDequeue(out var data);
                 var (locateRequests, locates) = data;
@@ -156,31 +176,38 @@ public class MessageHandler : IMessageHandler
         }
     }
 
-
-    private (LocateRequestModel? locateRequest, LocateModel? locate) Handle(LocatorQuoteResponse quoteResponse)
+    private (LocateRequestModel? locateRequest, LocateModel? locate) Handle(
+        LocatorQuoteResponse quoteResponse
+    )
     {
         LocateRequestModel? locateRequest = null;
         LocateModel? locate = null;
 
-        if (quoteResponse.Status is QuoteResponseStatusEnum.WaitingAcceptance
-            or QuoteResponseStatusEnum.AutoAccepted
-            or QuoteResponseStatusEnum.AutoRejected
-            or QuoteResponseStatusEnum.RejectedDuplicate
-            or QuoteResponseStatusEnum.RejectedBadRequest
-            or QuoteResponseStatusEnum.NoInventory)
+        if (
+            quoteResponse.Status
+            is QuoteResponseStatusEnum.WaitingAcceptance
+                or QuoteResponseStatusEnum.AutoAccepted
+                or QuoteResponseStatusEnum.AutoRejected
+                or QuoteResponseStatusEnum.RejectedDuplicate
+                or QuoteResponseStatusEnum.RejectedBadRequest
+                or QuoteResponseStatusEnum.NoInventory
+        )
         {
             locateRequest = _locateRequestsCache.Memorize(quoteResponse);
         }
 
-        if (quoteResponse.Status is QuoteResponseStatusEnum.Cancelled
-            or QuoteResponseStatusEnum.Expired
-            or QuoteResponseStatusEnum.Failed
-            or QuoteResponseStatusEnum.RejectedBadRequest
-            or QuoteResponseStatusEnum.RejectedDuplicate
-            or QuoteResponseStatusEnum.Partial
-            or QuoteResponseStatusEnum.Filled
-            or QuoteResponseStatusEnum.NoInventory
-            or QuoteResponseStatusEnum.AutoRejected)
+        if (
+            quoteResponse.Status
+            is QuoteResponseStatusEnum.Cancelled
+                or QuoteResponseStatusEnum.Expired
+                or QuoteResponseStatusEnum.Failed
+                or QuoteResponseStatusEnum.RejectedBadRequest
+                or QuoteResponseStatusEnum.RejectedDuplicate
+                or QuoteResponseStatusEnum.Partial
+                or QuoteResponseStatusEnum.Filled
+                or QuoteResponseStatusEnum.NoInventory
+                or QuoteResponseStatusEnum.AutoRejected
+        )
         {
             locate = _locatesCache.Memorize(quoteResponse);
         }
@@ -190,7 +217,7 @@ public class MessageHandler : IMessageHandler
 
     public void Handle(QuoteResponse quoteResp)
     {
-        var (locateRequest, locate) = Handle(new LocatorQuoteResponse(quoteResp));
+        var (locateRequest, locate) = Handle(LocatorQuoteResponse.From(quoteResp));
 
         if (locateRequest != null)
         {

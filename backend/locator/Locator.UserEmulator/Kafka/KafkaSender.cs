@@ -1,9 +1,10 @@
 ﻿using Confluent.Kafka;
+using Locator.UserEmulator;
+using Locator.UserEmulator.Options;
 using Newtonsoft.Json;
-using TradeZero.Locator.Emulator.Options;
 using Shared;
 
-namespace TradeZero.Locator.Emulator.Kafka;
+namespace Locator.UserEmulator.Kafka;
 
 public interface IKafkaSender
 {
@@ -19,34 +20,33 @@ public class KafkaSender : IDisposable, IKafkaSender
     {
         _options = options;
 
-        var config = new ProducerConfig
-        {
-            BootstrapServers = _options.Servers,
-        };
+        var config = new ProducerConfig { BootstrapServers = _options.Servers };
 
         _producer = new ProducerBuilder<Null, string>(config).Build();
     }
 
     public void SendQuote(QuoteRequest quote)
     {
-        _producer.Produce(_options.LocatorRequestTopic, new Message<Null, string>()
-            {
-                Value = JsonConvert.SerializeObject(quote)
-            },
+        _producer.Produce(
+            _options.LocatorRequestTopic,
+            new Message<Null, string>() { Value = Converter.Serialize(quote) },
             dr =>
             {
                 switch (dr.Status)
                 {
                     case PersistenceStatus.NotPersisted:
                         SharedData.Log(
-                            $"quote: {quote.Id}; RequestType:{quote.RequestType}; Cannot send a message to kafka. Reason {dr.Error.Reason}. Code {dr.Error.Code}");
+                            $"quote: {quote.Id}; RequestType:{quote.RequestType}; Cannot send a message to kafka. Reason {dr.Error.Reason}. Code {dr.Error.Code}"
+                        );
                         break;
                     case PersistenceStatus.PossiblyPersisted:
                         SharedData.Log(
-                            $"quote: {quote.Id}; RequestType:{quote.RequestType}; Message haven't been acknowledged by kafka. Reason {dr.Error.Reason ?? "unknown"}. Code {dr.Error.Code} ");
+                            $"quote: {quote.Id}; RequestType:{quote.RequestType}; Message haven't been acknowledged by kafka. Reason {dr.Error.Reason ?? "unknown"}. Code {dr.Error.Code} "
+                        );
                         break;
                 }
-            });
+            }
+        );
     }
 
     public void Dispose()

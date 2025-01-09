@@ -6,7 +6,7 @@ namespace Shared.Reporting.Requests
     {
         public int? Skip { get; set; }
         public int? Take { get; set; }
-        public string OrderBy { get; set; }
+        public required string OrderBy { get; set; }
         public DateTime? From { get; set; }
         public DateTime? To { get; set; }
         public QuoteResponseStatusEnum? Status { get; set; }

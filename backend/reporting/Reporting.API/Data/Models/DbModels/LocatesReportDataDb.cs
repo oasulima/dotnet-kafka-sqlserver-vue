@@ -14,7 +14,7 @@ public record LocatesReportDataDb(
     decimal? DiscountedFee,
     decimal? Profit,
     string Source,
-    QuoteSourceInfoDb[] Sources,
+    IList<QuoteSourceInfoDb> Sources,
     string? ErrorMessage,
     int TotalCount
 );
